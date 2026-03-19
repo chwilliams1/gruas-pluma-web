@@ -1,65 +1,70 @@
-import Image from "next/image";
+import prisma from '@/lib/prisma'
+import { KpiCard } from '@/components/ui/KpiCard'
+import { Badge } from '@/components/ui/Badge'
+import { FileText, Clock, DollarSign, AlertTriangle } from 'lucide-react'
 
-export default function Home() {
+export const dynamic = 'force-dynamic'
+
+export default async function DashboardPage() {
+  const reportes = await prisma.reporte.findMany({
+    include: { solicitud: { include: { cliente: true } } }
+  })
+  const solicitudes = await prisma.solicitud.findMany({
+    include: { cliente: true, chofer: true },
+    orderBy: { creadoEn: 'desc' },
+    take: 5
+  })
+
+  // KPIs
+  const totalHoras = reportes.reduce((s, r) => s + r.horas, 0)
+  const cobrado = reportes.filter(r => r.pagado).reduce((s, r) => s + r.monto, 0)
+  const pendiente = reportes.filter(r => !r.pagado).reduce((s, r) => s + r.monto, 0)
+  const nuevasSol = solicitudes.filter(s => s.estado === 'NUEVA').length
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-brand-text m-0">Dashboard</h1>
+          <p className="text-[13px] text-brand-text-light mt-1">Resumen de operaciones</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+
+      <div className="flex gap-4 mb-8 flex-wrap">
+        <KpiCard icon={<FileText size={20}/>} value={reportes.length} label="Reportes de servicio" type="blue" />
+        <KpiCard icon={<Clock size={20}/>} value={`${totalHoras}h`} label="Horas operadas" />
+        <KpiCard icon={<DollarSign size={20}/>} value={`$${(cobrado/1000).toFixed(0)}k`} label="Total cobrado" type="success" />
+        <KpiCard icon={<AlertTriangle size={20}/>} value={`$${(pendiente/1000).toFixed(0)}k`} label="Pendiente de cobro" type="danger" />
+      </div>
+
+      <div className="flex gap-4">
+        {/* Últimas Solicitudes */}
+        <div className="flex-1 bg-brand-card rounded-2xl p-6 shadow-sm border border-brand-border">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-base font-bold text-brand-text">Últimas Solicitudes</h2>
+            {nuevasSol > 0 && <Badge type="danger">{nuevasSol} nuevas</Badge>}
+          </div>
+
+          <div className="flex flex-col">
+            {solicitudes.map(s => (
+              <div key={s.id} className="py-3 border-b border-brand-divider last:border-0 hover:bg-brand-bg transition-colors -mx-6 px-6 cursor-pointer">
+                <div className="flex justify-between mb-1.5">
+                  <span className="text-[13px] font-semibold text-brand-text">{s.cliente.nombre}</span>
+                  <Badge type={s.estado === 'NUEVA' ? 'warning' : s.estado === 'ASIGNADA' ? 'blue' : 'success'}>
+                    {s.estado}
+                  </Badge>
+                </div>
+                <div className="text-[12px] text-brand-text-light">
+                  {s.tipo} · {s.fecha} · {s.hora} {s.chofer && `· Asignada a ${s.chofer.nombre}`}
+                </div>
+              </div>
+            ))}
+            {solicitudes.length === 0 && (
+              <div className="text-[13px] text-brand-text-light py-8 text-center italic">No hay solicitudes recientes</div>
+            )}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
-  );
+  )
 }

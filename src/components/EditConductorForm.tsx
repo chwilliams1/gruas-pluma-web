@@ -1,0 +1,108 @@
+'use client'
+
+import { updateConductor } from '@/lib/actions'
+import { useState, useTransition, useRef } from 'react'
+import { Pencil, X } from 'lucide-react'
+
+type Conductor = {
+  id: string
+  nombre: string
+  email: string | null
+  telefono: string | null
+  licencia: string | null
+  gruaId: string | null
+}
+
+type Grua = { id: string, patente: string, marca: string, modelo: string }
+
+export function EditConductorBtn({ conductor, gruas }: { conductor: Conductor, gruas: Grua[] }) {
+  const [open, setOpen] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    formData.set('id', conductor.id)
+    startTransition(async () => {
+      await updateConductor(formData)
+      setOpen(false)
+    })
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="p-2 rounded-lg text-brand-text-light hover:text-brand-blue hover:bg-brand-blue-bg transition-all cursor-pointer bg-transparent border-none"
+        title="Editar conductor"
+      >
+        <Pencil size={15} />
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-brand-card rounded-2xl p-8 w-full max-w-lg shadow-2xl border border-brand-border">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-brand-text">Editar Conductor</h2>
+              <button onClick={() => setOpen(false)} className="text-brand-text-light hover:text-brand-text cursor-pointer bg-transparent border-none">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <div>
+                <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Nombre Completo</label>
+                <input name="nombre" type="text" required defaultValue={conductor.nombre} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Email</label>
+                  <input name="email" type="email" defaultValue={conductor.email || ''} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Teléfono</label>
+                  <input name="telefono" type="text" defaultValue={conductor.telefono || ''} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Licencia</label>
+                  <select name="licencia" defaultValue={conductor.licencia || ''} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent">
+                    <option value="">Sin licencia</option>
+                    <option value="A-2">A-2</option>
+                    <option value="A-4">A-4</option>
+                    <option value="A-5">A-5</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Grúa Asignada</label>
+                  <select name="gruaId" defaultValue={conductor.gruaId || ''} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent">
+                    <option value="">Sin asignar</option>
+                    {gruas.map(g => <option key={g.id} value={g.id}>{g.patente} — {g.marca} {g.modelo}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Nueva Contraseña <span className="font-normal text-brand-text-light">(dejar vacío para mantener)</span></label>
+                <input name="password" type="password" placeholder="••••••" className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
+              </div>
+
+              <div className="flex gap-3 mt-2">
+                <button type="button" onClick={() => setOpen(false)} className="flex-1 px-5 py-2.5 rounded-lg border border-brand-border text-[13px] font-semibold text-brand-text-mid bg-brand-bg hover:bg-brand-divider transition-colors cursor-pointer">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={isPending} className="flex-1 px-5 py-2.5 rounded-lg bg-brand-accent hover:bg-brand-accent-dark transition-colors text-white text-[13px] font-bold cursor-pointer border-none shadow-sm disabled:opacity-50">
+                  {isPending ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
