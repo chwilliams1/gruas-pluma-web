@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const data = await req.json()
 
     // Determine flow: "asignado" (has solicitudId) or "directo" (has clienteNombre)
-    const isDirecto = !data.solicitudId && isNonEmptyString(data.clienteNombre)
+    const isDirecto = !data.solicitudId && (isNonEmptyString(data.clienteNombre) || isNonEmptyString(data.clienteId))
 
     if (!isDirecto) {
       // === Flow: Servicio asignado (original) ===
@@ -120,7 +120,7 @@ export async function POST(req: Request) {
       // === Flow: Cliente directo ===
       if (!isPositiveNumber(data.horas) || !isNonEmptyString(data.descripcion)) {
         return NextResponse.json(
-          { error: 'clienteNombre, horas y descripcion son requeridos' },
+          { error: 'horas y descripcion son requeridos' },
           { status: 400, headers }
         )
       }
@@ -132,20 +132,35 @@ export async function POST(req: Request) {
         )
       }
 
+      if (!isNonEmptyString(data.clienteId) && !isNonEmptyString(data.clienteNombre)) {
+        return NextResponse.json(
+          { error: 'clienteId o clienteNombre es requerido' },
+          { status: 400, headers }
+        )
+      }
+
       const horasReales = Math.max(0, Number(data.horas))
       const horasCobradas = Math.max(3, horasReales)
       const conAlzahombre = !!data.conAlzahombre
       const valorHora = conAlzahombre ? 65000 : 60000
 
       const result = await prisma.$transaction(async (tx) => {
-        // 1. Create client
-        const cliente = await tx.cliente.create({
-          data: {
-            nombre: String(data.clienteNombre).trim().slice(0, 500),
-            telefono: data.clienteTelefono ? String(data.clienteTelefono).trim().slice(0, 50) : null,
-            direccion: String(data.direccion).trim().slice(0, 500),
-          },
-        })
+        // 1. Get or create client
+        let cliente;
+        if (isNonEmptyString(data.clienteId)) {
+          cliente = await tx.cliente.findUnique({ where: { id: data.clienteId } })
+          if (!cliente) {
+            throw new Error('CLIENTE_NOT_FOUND')
+          }
+        } else {
+          cliente = await tx.cliente.create({
+            data: {
+              nombre: String(data.clienteNombre).trim().slice(0, 500),
+              telefono: data.clienteTelefono ? String(data.clienteTelefono).trim().slice(0, 50) : null,
+              direccion: String(data.direccion).trim().slice(0, 500),
+            },
+          })
+        }
 
         // 2. Create solicitud
         const solCodigo = `SOL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
@@ -187,7 +202,13 @@ export async function POST(req: Request) {
 
       return NextResponse.json(result, { status: 201, headers })
     }
-  } catch {
+  } catch (e: any) {
+    if (e?.message === 'CLIENTE_NOT_FOUND') {
+      return NextResponse.json(
+        { error: 'Cliente no encontrado' },
+        { status: 404, headers }
+      )
+    }
     return NextResponse.json(
       { error: 'Error al crear reporte' },
       { status: 500, headers }
