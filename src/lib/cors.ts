@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server'
 
 const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:3000']
+  : ['http://localhost:3000', 'http://localhost:8081', 'http://localhost:8082', 'http://localhost:19006']
 
 export function getCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('Origin') || ''
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  const isLocalDev = origin.startsWith('http://localhost:')
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) || isLocalDev ? origin : ALLOWED_ORIGINS[0]
 
   return {
     'Access-Control-Allow-Origin': allowedOrigin,

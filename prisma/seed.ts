@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -9,6 +10,10 @@ async function main() {
   await prisma.cliente.deleteMany()
   await prisma.usuario.deleteMany()
   await prisma.grua.deleteMany()
+
+  // Hash passwords para que funcionen con bcrypt.compare() en el login
+  const hash123 = await bcrypt.hash('123', 12)
+  const hashAdmin = await bcrypt.hash('password123', 12)
 
   // ─── Grúas ───
   const grua1 = await prisma.grua.create({
@@ -76,7 +81,7 @@ async function main() {
     data: {
       nombre: 'Charles Duarte',
       email: 'admin@gruaspluma.cl',
-      password: 'password123',
+      password: hashAdmin,
       rol: 'ADMIN'
     }
   })
@@ -85,7 +90,7 @@ async function main() {
     data: {
       nombre: 'Juan Pérez',
       email: 'juan@gruaspluma.cl',
-      password: '123',
+      password: hash123,
       rol: 'CHOFER',
       telefono: '+56 9 6543 2100',
       licencia: 'A-4',
@@ -97,7 +102,7 @@ async function main() {
     data: {
       nombre: 'Carlos Muñoz',
       email: 'carlos@gruaspluma.cl',
-      password: '123',
+      password: hash123,
       rol: 'CHOFER',
       telefono: '+56 9 7654 3210',
       licencia: 'A-2',
@@ -109,7 +114,7 @@ async function main() {
     data: {
       nombre: 'Pedro Soto',
       email: 'pedro@gruaspluma.cl',
-      password: '123',
+      password: hash123,
       rol: 'CHOFER',
       telefono: '+56 9 8765 4320',
       licencia: 'A-4',

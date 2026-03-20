@@ -76,7 +76,7 @@ export function NuevaSolicitudForm({ clientes }: { clientes: { id: string, nombr
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={labelClass}>Fecha</label>
-              <input name="fecha" type="text" placeholder="20 Mar 2026" required className={inputClass} />
+              <input name="fecha" type="date" required className={inputClass} />
             </div>
             <div>
               <label className={labelClass}>Horario</label>

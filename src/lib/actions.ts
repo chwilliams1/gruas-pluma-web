@@ -62,13 +62,16 @@ export async function createSolicitud(formData: FormData) {
   const cliente = await prisma.cliente.findUnique({ where: { id: clienteId } })
   if (!cliente) throw new Error('Cliente no encontrado')
 
+  // Convertir fecha de yyyy-mm-dd (input date) a dd/mm/yyyy
+  const fechaFormatted = fecha.includes('-') ? fecha.split('-').reverse().join('/') : fecha
+
   await prisma.solicitud.create({
     data: {
       codigo: generateCode('SOL'),
       clienteId,
       tipo: sanitizeString(tipo, 50),
       descripcion: sanitizeDescription(descripcion),
-      fecha: sanitizeString(fecha, 50),
+      fecha: sanitizeString(fechaFormatted, 50),
       hora: sanitizeString(hora, 50),
       direccion: sanitizeString(direccion, 300),
       estado: 'NUEVA',
@@ -548,7 +551,7 @@ export async function createReporte(formData: FormData) {
   const monto = (horas + horasExtra) * valorHora
   const descSanitized = isNonEmptyString(descripcion) ? sanitizeDescription(descripcion) : 'Reporte manual'
 
-  await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const solicitud = await tx.solicitud.create({
       data: {
         codigo: generateCode('SOL'),
@@ -563,7 +566,7 @@ export async function createReporte(formData: FormData) {
       }
     })
 
-    await tx.reporte.create({
+    const reporte = await tx.reporte.create({
       data: {
         codigo: generateCode('RPT'),
         numeroReporte: safeParseInt(numeroReporteStr),
@@ -580,12 +583,16 @@ export async function createReporte(formData: FormData) {
         estadoReporte: isValidEnum(estadoReporte, ESTADOS_REPORTE) ? estadoReporte : 'sin factura',
       }
     })
+
+    return reporte.id
   })
 
   revalidatePath('/reportes')
   revalidatePath('/facturacion')
   revalidatePath('/estadisticas')
   revalidatePath('/')
+
+  return result
 }
 
 // ─── Importar Reportes CSV ───
