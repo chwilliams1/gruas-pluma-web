@@ -3,7 +3,7 @@ import { NuevaGruaForm } from '@/components/NuevaGruaForm'
 import { DeleteGruaBtn } from '@/components/DeleteGruaBtn'
 import { ToggleEstadoGruaBtn } from '@/components/ToggleEstadoGruaBtn'
 import { EditGruaBtn } from '@/components/EditGruaForm'
-import { Gauge, Calendar, Weight, User } from 'lucide-react'
+import { Calendar, Weight, User } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,9 +28,9 @@ export default async function GruasPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-brand-text m-0">Grúas</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-text m-0">Grúas</h1>
           <p className="text-[13px] text-brand-text-light mt-1">
             {gruas.length} grúas — {disponibles} disponibles, {enServicio} en servicio, {mantencion} en mantención
           </p>
@@ -38,84 +38,145 @@ export default async function GruasPage() {
         <NuevaGruaForm />
       </div>
 
-      <div className="bg-brand-card rounded-2xl overflow-hidden shadow-sm border border-brand-border">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-brand-divider text-[11px] font-bold text-brand-text-light uppercase tracking-wider">
-              <th className="py-3 px-6 border-b-2 border-brand-border">Grúa</th>
-              <th className="py-3 px-6 border-b-2 border-brand-border">Tipo</th>
-              <th className="py-3 px-6 border-b-2 border-brand-border">Capacidad</th>
-              <th className="py-3 px-6 border-b-2 border-brand-border">Conductor(es)</th>
-              <th className="py-3 px-6 border-b-2 border-brand-border text-center">Servicios</th>
-              <th className="py-3 px-6 border-b-2 border-brand-border text-center">Estado</th>
-              <th className="py-3 px-6 border-b-2 border-brand-border w-12"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {gruas.map(g => (
-              <tr key={g.id} className="hover:bg-brand-bg transition-colors border-b border-brand-divider last:border-0 group">
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-brand-bg border border-brand-border flex items-center justify-center text-[11px] font-bold text-brand-text shrink-0">
-                      {g.patente.slice(0, 4)}
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-semibold text-brand-text">{g.patente}</div>
-                      <div className="text-[11px] text-brand-text-light">
-                        {g.marca} {g.modelo}
-                        {g.anio && (
-                          <span className="inline-flex items-center gap-0.5 ml-2">
-                            <Calendar size={10} /> {g.anio}
-                          </span>
-                        )}
+      {/* Mobile cards */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {gruas.map(g => (
+          <div key={g.id} className="bg-brand-card rounded-xl p-4 shadow-sm border border-brand-border">
+            <div className="flex items-start justify-between gap-2 mb-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-brand-bg border border-brand-border flex items-center justify-center text-[11px] font-bold text-brand-text shrink-0">
+                  {g.patente.slice(0, 4)}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold text-brand-text">{g.patente}</div>
+                  <div className="text-[11px] text-brand-text-light">
+                    {g.marca} {g.modelo}
+                    {g.anio && <span className="ml-1">· {g.anio}</span>}
+                  </div>
+                </div>
+              </div>
+              <ToggleEstadoGruaBtn gruaId={g.id} estado={g.estado} />
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${tipoStyles[g.tipo] || 'bg-brand-divider text-brand-text-light'}`}>
+                {g.tipo}
+              </span>
+              <span className="flex items-center gap-1 text-[12px] text-brand-text-mid">
+                <Weight size={12} className="text-brand-text-light" />
+                {g.capacidad}
+              </span>
+            </div>
+
+            {g.choferes.length > 0 && (
+              <div className="flex flex-col gap-1 mb-3">
+                {g.choferes.map(ch => (
+                  <div key={ch.id} className="flex items-center gap-1.5 text-[12px] text-brand-text-mid">
+                    <User size={12} className="text-brand-text-light" />
+                    <span>{ch.nombre}</span>
+                    {!ch.activo && <span className="text-[10px] text-brand-danger">(inactivo)</span>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-3 border-t border-brand-divider">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${g._count.solicitudes > 0 ? 'bg-brand-blue-bg text-brand-blue' : 'bg-brand-divider text-brand-text-light'}`}>
+                {g._count.solicitudes} servicios
+              </span>
+              <div className="flex items-center gap-1">
+                <EditGruaBtn grua={{ id: g.id, patente: g.patente, marca: g.marca, modelo: g.modelo, anio: g.anio, tipo: g.tipo, capacidad: g.capacidad, estado: g.estado }} />
+                <DeleteGruaBtn gruaId={g.id} />
+              </div>
+            </div>
+          </div>
+        ))}
+        {gruas.length === 0 && (
+          <div className="text-[13px] text-brand-text-light py-12 text-center italic bg-brand-card rounded-xl border border-brand-border">No hay grúas registradas</div>
+        )}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden md:block bg-brand-card rounded-2xl overflow-hidden shadow-sm border border-brand-border">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-brand-divider text-[11px] font-bold text-brand-text-light uppercase tracking-wider">
+                <th className="py-3 px-6 border-b-2 border-brand-border">Grúa</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border">Tipo</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border">Capacidad</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border">Conductor(es)</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border text-center">Servicios</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border text-center">Estado</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border w-12"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {gruas.map(g => (
+                <tr key={g.id} className="hover:bg-brand-bg transition-colors border-b border-brand-divider last:border-0 group">
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-bg border border-brand-border flex items-center justify-center text-[11px] font-bold text-brand-text shrink-0">
+                        {g.patente.slice(0, 4)}
+                      </div>
+                      <div>
+                        <div className="text-[13px] font-semibold text-brand-text">{g.patente}</div>
+                        <div className="text-[11px] text-brand-text-light">
+                          {g.marca} {g.modelo}
+                          {g.anio && (
+                            <span className="inline-flex items-center gap-0.5 ml-2">
+                              <Calendar size={10} /> {g.anio}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${tipoStyles[g.tipo] || 'bg-brand-divider text-brand-text-light'}`}>
-                    {g.tipo}
-                  </span>
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-1.5">
-                    <Weight size={13} className="text-brand-text-light" />
-                    <span className="text-[13px] font-semibold text-brand-text">{g.capacidad}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-6">
-                  {g.choferes.length > 0 ? (
-                    <div className="flex flex-col gap-1">
-                      {g.choferes.map(ch => (
-                        <div key={ch.id} className="flex items-center gap-1.5 text-[12px] text-brand-text-mid">
-                          <User size={12} className="text-brand-text-light" />
-                          <span>{ch.nombre}</span>
-                          {!ch.activo && <span className="text-[10px] text-brand-danger">(inactivo)</span>}
-                        </div>
-                      ))}
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${tipoStyles[g.tipo] || 'bg-brand-divider text-brand-text-light'}`}>
+                      {g.tipo}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-1.5">
+                      <Weight size={13} className="text-brand-text-light" />
+                      <span className="text-[13px] font-semibold text-brand-text">{g.capacidad}</span>
                     </div>
-                  ) : (
-                    <span className="text-[12px] text-brand-text-light italic">Sin conductor</span>
-                  )}
-                </td>
-                <td className="py-4 px-6 text-center">
-                  <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-[13px] font-bold ${g._count.solicitudes > 0 ? 'bg-brand-blue-bg text-brand-blue' : 'bg-brand-divider text-brand-text-light'}`}>
-                    {g._count.solicitudes}
-                  </span>
-                </td>
-                <td className="py-4 px-6 text-center">
-                  <ToggleEstadoGruaBtn gruaId={g.id} estado={g.estado} />
-                </td>
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-1">
-                    <EditGruaBtn grua={{ id: g.id, patente: g.patente, marca: g.marca, modelo: g.modelo, anio: g.anio, tipo: g.tipo, capacidad: g.capacidad, estado: g.estado }} />
-                    <DeleteGruaBtn gruaId={g.id} />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </td>
+                  <td className="py-4 px-6">
+                    {g.choferes.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {g.choferes.map(ch => (
+                          <div key={ch.id} className="flex items-center gap-1.5 text-[12px] text-brand-text-mid">
+                            <User size={12} className="text-brand-text-light" />
+                            <span>{ch.nombre}</span>
+                            {!ch.activo && <span className="text-[10px] text-brand-danger">(inactivo)</span>}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-[12px] text-brand-text-light italic">Sin conductor</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-[13px] font-bold ${g._count.solicitudes > 0 ? 'bg-brand-blue-bg text-brand-blue' : 'bg-brand-divider text-brand-text-light'}`}>
+                      {g._count.solicitudes}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <ToggleEstadoGruaBtn gruaId={g.id} estado={g.estado} />
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-1">
+                      <EditGruaBtn grua={{ id: g.id, patente: g.patente, marca: g.marca, modelo: g.modelo, anio: g.anio, tipo: g.tipo, capacidad: g.capacidad, estado: g.estado }} />
+                      <DeleteGruaBtn gruaId={g.id} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {gruas.length === 0 && (
           <div className="text-[13px] text-brand-text-light py-12 text-center italic">No hay grúas registradas</div>
         )}

@@ -1,15 +1,12 @@
 'use client'
 
-import { importReportes } from '@/lib/actions'
+import { importClientes } from '@/lib/actions'
 import { useState, useTransition, useRef } from 'react'
 import { Upload, X, FileSpreadsheet, CheckCircle, AlertCircle } from 'lucide-react'
 
-type ImportResult = { created: number, errors: string[] }
+type ImportResult = { created: number, updated: number, errors: string[] }
 
-export function ImportReportesCSV({ choferes, clientes }: {
-  choferes: { id: string, nombre: string }[]
-  clientes: { id: string, nombre: string }[]
-}) {
+export function ImportClientesCSV() {
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [preview, setPreview] = useState<string[][]>([])
@@ -60,10 +57,12 @@ export function ImportReportesCSV({ choferes, clientes }: {
     })
 
     startTransition(async () => {
-      const res = await importReportes(JSON.stringify(jsonRows))
+      const res = await importClientes(JSON.stringify(jsonRows))
       setResult(res)
     })
   }
+
+  const reset = () => { setOpen(false); setPreview([]); setResult(null); setFileName('') }
 
   if (!open) {
     return (
@@ -80,8 +79,8 @@ export function ImportReportesCSV({ choferes, clientes }: {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
       <div className="bg-brand-card rounded-2xl p-8 w-full max-w-3xl shadow-2xl border border-brand-border max-h-[90vh] overflow-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-bold text-brand-text">Importar Reportes desde CSV</h2>
-          <button onClick={() => { setOpen(false); setPreview([]); setResult(null); setFileName('') }} className="text-brand-text-light hover:text-brand-text cursor-pointer bg-transparent border-none">
+          <h2 className="text-lg font-bold text-brand-text">Importar Clientes desde CSV</h2>
+          <button onClick={reset} className="text-brand-text-light hover:text-brand-text cursor-pointer bg-transparent border-none">
             <X size={20} />
           </button>
         </div>
@@ -94,22 +93,15 @@ export function ImportReportesCSV({ choferes, clientes }: {
               <p className="font-bold text-brand-text mb-1">Formato del archivo CSV:</p>
               <p className="mb-1">El archivo debe tener las siguientes columnas (separado por <code className="bg-brand-divider px-1 rounded">,</code> o <code className="bg-brand-divider px-1 rounded">;</code>):</p>
               <code className="block bg-brand-divider px-3 py-2 rounded-lg text-[11px] mb-2">
-                responsable, n reporte, fecha, rut, empresa, valor hora, horas, h extra, monto reporte, informacion, estado de reporte, estado
+                nombre, rut, telefono, direccion
               </code>
               <ul className="list-disc list-inside space-y-0.5 text-[11px]">
-                <li><strong>responsable:</strong> Nombre exacto del conductor registrado</li>
-                <li><strong>n reporte:</strong> Numero del reporte (ej: 34928)</li>
-                <li><strong>fecha:</strong> Ej: "09/03/2026"</li>
-                <li><strong>rut:</strong> RUT del cliente (ej: 76083169-7)</li>
-                <li><strong>empresa:</strong> Nombre exacto del cliente registrado</li>
-                <li><strong>valor hora:</strong> Valor por hora (ej: 60000 o 65000)</li>
-                <li><strong>horas:</strong> Horas trabajadas (ej: 3,00)</li>
-                <li><strong>h extra:</strong> Horas extra (opcional)</li>
-                <li><strong>monto reporte:</strong> Monto total. Si vacio se calcula horas x valor hora</li>
-                <li><strong>informacion:</strong> Descripcion del trabajo</li>
-                <li><strong>estado de reporte:</strong> "facturado", "sin factura" o "ESPERA OC"</li>
-                <li><strong>estado:</strong> "pagado" o "pendiente"</li>
+                <li><strong>nombre / empresa:</strong> Nombre del cliente o empresa (obligatorio)</li>
+                <li><strong>rut:</strong> RUT de la empresa (ej: 76083169-7)</li>
+                <li><strong>telefono:</strong> Numero de contacto</li>
+                <li><strong>direccion:</strong> Direccion del cliente</li>
               </ul>
+              <p className="mt-2 text-[11px] text-brand-text-light">Si un cliente ya existe (mismo nombre), se actualizaran los campos vacios.</p>
             </div>
           </div>
         </div>
@@ -119,7 +111,7 @@ export function ImportReportesCSV({ choferes, clientes }: {
           <input
             ref={fileRef}
             type="file"
-            accept=".csv,.txt"
+            accept=".csv,.txt,.xls,.xlsx"
             onChange={handleFile}
             className="hidden"
           />
@@ -161,7 +153,7 @@ export function ImportReportesCSV({ choferes, clientes }: {
               </table>
               {preview.length > 11 && (
                 <div className="text-[11px] text-brand-text-light text-center py-2 bg-brand-bg">
-                  ... y {preview.length - 11} filas más
+                  ... y {preview.length - 11} filas mas
                 </div>
               )}
             </div>
@@ -178,7 +170,9 @@ export function ImportReportesCSV({ choferes, clientes }: {
                 <AlertCircle size={18} className="text-brand-accent shrink-0 mt-0.5" />
               )}
               <div className="text-[12px]">
-                <p className="font-bold text-brand-text">{result.created} reportes importados correctamente</p>
+                <p className="font-bold text-brand-text">
+                  {result.created} clientes creados{result.updated > 0 ? `, ${result.updated} actualizados` : ''}
+                </p>
                 {result.errors.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {result.errors.map((err, i) => (
@@ -191,27 +185,11 @@ export function ImportReportesCSV({ choferes, clientes }: {
           </div>
         )}
 
-        {/* Choferes y Clientes disponibles */}
-        <div className="flex gap-4 mb-6">
-          <div className="flex-1 bg-brand-bg rounded-lg p-3 border border-brand-border">
-            <p className="text-[10px] font-bold text-brand-text-light uppercase tracking-wider mb-1">Conductores disponibles</p>
-            <div className="text-[11px] text-brand-text-mid space-y-0.5 max-h-[100px] overflow-auto">
-              {choferes.map(c => <div key={c.id}>{c.nombre}</div>)}
-            </div>
-          </div>
-          <div className="flex-1 bg-brand-bg rounded-lg p-3 border border-brand-border">
-            <p className="text-[10px] font-bold text-brand-text-light uppercase tracking-wider mb-1">Clientes disponibles</p>
-            <div className="text-[11px] text-brand-text-mid space-y-0.5 max-h-[100px] overflow-auto">
-              {clientes.map(c => <div key={c.id}>{c.nombre}</div>)}
-            </div>
-          </div>
-        </div>
-
         {/* Actions */}
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => { setOpen(false); setPreview([]); setResult(null); setFileName('') }}
+            onClick={reset}
             className="flex-1 px-5 py-2.5 rounded-lg border border-brand-border text-[13px] font-semibold text-brand-text-mid bg-brand-bg hover:bg-brand-divider transition-colors cursor-pointer"
           >
             Cerrar
@@ -221,7 +199,7 @@ export function ImportReportesCSV({ choferes, clientes }: {
             disabled={isPending || preview.length < 2}
             className="flex-1 px-5 py-2.5 rounded-lg bg-brand-accent hover:bg-brand-accent-dark transition-colors text-white text-[13px] font-bold cursor-pointer border-none shadow-sm disabled:opacity-50"
           >
-            {isPending ? 'Importando...' : `Importar ${Math.max(0, preview.length - 1)} Reportes`}
+            {isPending ? 'Importando...' : `Importar ${Math.max(0, preview.length - 1)} Clientes`}
           </button>
         </div>
       </div>

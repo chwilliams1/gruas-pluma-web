@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
+import { isNonEmptyString, sanitizeString } from '@/lib/validation'
 
 export async function GET() {
   try {
@@ -8,7 +9,7 @@ export async function GET() {
       orderBy: { creadoEn: 'desc' }
     })
     return NextResponse.json(clientes)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Error al obtener clientes' }, { status: 500 })
   }
 }
@@ -16,15 +17,20 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const data = await req.json()
+
+    if (!isNonEmptyString(data.nombre)) {
+      return NextResponse.json({ error: 'nombre es requerido' }, { status: 400 })
+    }
+
     const cliente = await prisma.cliente.create({
       data: {
-        nombre: data.nombre,
-        telefono: data.telefono || null,
-        direccion: data.direccion || null
+        nombre: sanitizeString(data.nombre),
+        telefono: isNonEmptyString(data.telefono) ? sanitizeString(data.telefono, 20) : null,
+        direccion: isNonEmptyString(data.direccion) ? sanitizeString(data.direccion, 300) : null,
       }
     })
     return NextResponse.json(cliente, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Error al crear cliente' }, { status: 500 })
   }
 }

@@ -8,9 +8,9 @@ export function KpiCard({ icon, value, label, type = "default", trend }: { icon:
     danger: { bg: "bg-brand-danger-bg", text: "text-brand-danger" },
   }
   return (
-    <div className="bg-brand-card rounded-2xl p-5 shadow-sm border border-brand-border flex-1 min-w-[200px]">
+    <div className="bg-brand-card rounded-2xl p-4 sm:p-5 shadow-sm border border-brand-border flex-1 min-w-[140px] sm:min-w-[200px]">
       <div className="flex justify-between items-start">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl ${colors[type].bg}`}>
+        <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-xl ${colors[type].bg}`}>
           {icon}
         </div>
         {trend && (
@@ -19,8 +19,8 @@ export function KpiCard({ icon, value, label, type = "default", trend }: { icon:
           </span>
         )}
       </div>
-      <div className={`text-3xl font-bold mt-4 ${colors[type].text}`}>{value}</div>
-      <div className="text-[13px] text-brand-text-light mt-1">{label}</div>
+      <div className={`text-xl sm:text-3xl font-bold mt-3 sm:mt-4 ${colors[type].text}`}>{value}</div>
+      <div className="text-[11px] sm:text-[13px] text-brand-text-light mt-1">{label}</div>
     </div>
   )
 }

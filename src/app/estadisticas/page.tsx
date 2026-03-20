@@ -11,11 +11,10 @@ export default async function EstadisticasPage() {
   const solicitudes = await prisma.solicitud.findMany({
     include: { cliente: true, chofer: true }
   })
-  const clientes = await prisma.cliente.findMany()
 
   // KPIs
   const totalServicios = solicitudes.length
-  const totalHoras = reportes.reduce((s, r) => s + r.horas, 0)
+  const totalHoras = reportes.reduce((s, r) => s + r.horas + (r.horasExtra ?? 0), 0)
   const totalMonto = reportes.reduce((s, r) => s + r.monto, 0)
   const pctCobrado = reportes.length > 0
     ? Math.round((reportes.filter(r => r.pagado).length / reportes.length) * 100)
@@ -54,24 +53,24 @@ export default async function EstadisticasPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-brand-text m-0">Estadísticas</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-text m-0">Estadísticas</h1>
           <p className="text-[13px] text-brand-text-light mt-1">Métricas de operación y rendimiento</p>
         </div>
       </div>
 
-      <div className="flex gap-4 mb-8 flex-wrap">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
         <KpiCard icon={<BarChart3 size={20}/>} value={totalServicios} label="Total servicios" type="blue" />
         <KpiCard icon={<Clock size={20}/>} value={`${totalHoras}h`} label="Horas operadas" />
         <KpiCard icon={<TrendingUp size={20}/>} value={`$${(totalMonto/1000).toFixed(0)}k`} label="Monto total" type="success" />
         <KpiCard icon={<Users size={20}/>} value={`${pctCobrado}%`} label="Tasa de cobro" type={pctCobrado >= 70 ? 'success' : 'danger'} />
       </div>
 
-      <div className="flex gap-4 mb-4 flex-wrap">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* Distribución por tipo */}
-        <div className="flex-1 min-w-[300px] bg-brand-card rounded-2xl p-6 shadow-sm border border-brand-border">
-          <h2 className="text-base font-bold text-brand-text mb-6">Servicios por Tipo</h2>
+        <div className="bg-brand-card rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-brand-border">
+          <h2 className="text-sm sm:text-base font-bold text-brand-text mb-4 sm:mb-6">Servicios por Tipo</h2>
           <div className="flex flex-col gap-4">
             {tipos.map(([tipo, count], i) => (
               <div key={tipo}>
@@ -94,8 +93,8 @@ export default async function EstadisticasPage() {
         </div>
 
         {/* Top Clientes */}
-        <div className="flex-1 min-w-[300px] bg-brand-card rounded-2xl p-6 shadow-sm border border-brand-border">
-          <h2 className="text-base font-bold text-brand-text mb-6">Top Clientes</h2>
+        <div className="bg-brand-card rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-brand-border">
+          <h2 className="text-sm sm:text-base font-bold text-brand-text mb-4 sm:mb-6">Top Clientes</h2>
           <div className="flex flex-col">
             {topClientes.map((c, i) => (
               <div key={i} className="flex items-center gap-3 py-3 border-b border-brand-divider last:border-0">
@@ -106,7 +105,7 @@ export default async function EstadisticasPage() {
                   <div className="text-[13px] font-semibold text-brand-text truncate">{c.nombre}</div>
                   <div className="text-[11px] text-brand-text-light">{c.count} servicios</div>
                 </div>
-                <div className="text-[13px] font-bold text-brand-text">${(c.monto / 1000).toFixed(0)}k</div>
+                <div className="text-[13px] font-bold text-brand-text shrink-0">${(c.monto / 1000).toFixed(0)}k</div>
               </div>
             ))}
             {topClientes.length === 0 && (
@@ -117,17 +116,17 @@ export default async function EstadisticasPage() {
       </div>
 
       {/* Top Choferes */}
-      <div className="bg-brand-card rounded-2xl p-6 shadow-sm border border-brand-border">
-        <h2 className="text-base font-bold text-brand-text mb-6">Rendimiento de Choferes</h2>
-        <div className="flex gap-6 flex-wrap">
+      <div className="bg-brand-card rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-brand-border">
+        <h2 className="text-sm sm:text-base font-bold text-brand-text mb-4 sm:mb-6">Rendimiento de Choferes</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
           {topChoferes.map((ch, i) => (
-            <div key={i} className="flex-1 min-w-[180px] bg-brand-bg rounded-xl p-4 border border-brand-border">
+            <div key={i} className="bg-brand-bg rounded-xl p-4 border border-brand-border">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-accent to-brand-accent-dark flex items-center justify-center text-[12px] font-bold text-white">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-accent to-brand-accent-dark flex items-center justify-center text-[12px] font-bold text-white shrink-0">
                   {ch.nombre.split(' ').map(n => n[0]).join('')}
                 </div>
-                <div>
-                  <div className="text-[13px] font-bold text-brand-text">{ch.nombre}</div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-bold text-brand-text truncate">{ch.nombre}</div>
                   <div className="text-[11px] text-brand-text-light">{ch.count} reportes</div>
                 </div>
               </div>

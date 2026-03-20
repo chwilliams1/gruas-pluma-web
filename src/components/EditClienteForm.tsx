@@ -7,6 +7,7 @@ import { Pencil, X } from 'lucide-react'
 type ClienteData = {
   id: string
   nombre: string
+  rut: string | null
   telefono: string | null
   direccion: string | null
 }
@@ -50,6 +51,10 @@ export function EditClienteBtn({ cliente }: { cliente: ClienteData }) {
               <div>
                 <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Nombre / Empresa</label>
                 <input name="nombre" type="text" required defaultValue={cliente.nombre} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
+              </div>
+              <div>
+                <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">RUT</label>
+                <input name="rut" type="text" defaultValue={cliente.rut || ''} placeholder="12345678-9" className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
               </div>
               <div>
                 <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Teléfono</label>

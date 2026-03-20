@@ -46,6 +46,10 @@ export function NuevoClienteForm() {
             <input name="nombre" type="text" required className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
           </div>
           <div>
+            <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">RUT</label>
+            <input name="rut" type="text" placeholder="12345678-9" className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
+          </div>
+          <div>
             <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Teléfono</label>
             <input name="telefono" type="text" placeholder="+56 9 ..." className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
           </div>
