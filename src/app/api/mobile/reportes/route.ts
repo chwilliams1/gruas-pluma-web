@@ -83,7 +83,8 @@ export async function POST(req: Request) {
         )
       }
 
-      const horas = Math.max(0, Number(data.horas))
+      const horasReales = Math.max(0, Number(data.horas))
+      const horasCobradas = Math.max(3, horasReales)
       const conAlzahombre = !!data.conAlzahombre
       const valorHora = conAlzahombre ? 65000 : 60000
 
@@ -96,12 +97,12 @@ export async function POST(req: Request) {
             solicitudId: data.solicitudId,
             choferId: auth.userId,
             fecha: new Date().toLocaleDateString('es-CL'),
-            horas,
+            horas: horasReales,
             descripcion: String(data.descripcion).slice(0, 2000),
             evidencia: data.evidencia || null,
             conAlzahombre,
             valorHora,
-            monto: horas * valorHora,
+            monto: horasCobradas * valorHora,
           },
         })
 
@@ -131,7 +132,8 @@ export async function POST(req: Request) {
         )
       }
 
-      const horas = Math.max(0, Number(data.horas))
+      const horasReales = Math.max(0, Number(data.horas))
+      const horasCobradas = Math.max(3, horasReales)
       const conAlzahombre = !!data.conAlzahombre
       const valorHora = conAlzahombre ? 65000 : 60000
 
@@ -169,14 +171,14 @@ export async function POST(req: Request) {
             solicitudId: solicitud.id,
             choferId: auth.userId,
             fecha: new Date().toLocaleDateString('es-CL'),
-            horas,
+            horas: horasReales,
             descripcion: String(data.descripcion).slice(0, 2000),
             evidencia: data.evidencia || null,
             conAlzahombre,
             pagado: !!data.pagado,
             factura: !!data.factura,
             valorHora,
-            monto: horas * valorHora,
+            monto: horasCobradas * valorHora,
           },
         })
 
