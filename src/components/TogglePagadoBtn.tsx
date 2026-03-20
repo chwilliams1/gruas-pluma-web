@@ -10,10 +10,10 @@ export function TogglePagadoBtn({ reporteId, pagado }: { reporteId: string, paga
     <button
       onClick={() => startTransition(() => togglePagado(reporteId))}
       disabled={isPending}
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold cursor-pointer border-none transition-all hover:scale-105 disabled:opacity-50 ${
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium cursor-pointer border-none transition-colors duration-150 disabled:opacity-50 ${
         pagado
-          ? 'bg-brand-success-bg text-brand-success'
-          : 'bg-brand-danger-bg text-brand-danger'
+          ? 'bg-success-subtle text-success hover:bg-success-light'
+          : 'bg-danger-subtle text-danger hover:bg-danger-light'
       }`}
     >
       {isPending ? '...' : pagado ? '✓ Pagado' : '○ Por cobrar'}

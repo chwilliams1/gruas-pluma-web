@@ -10,10 +10,10 @@ export function ToggleActivoBtn({ conductorId, activo }: { conductorId: string, 
     <button
       onClick={() => startTransition(() => toggleActivoConductor(conductorId))}
       disabled={isPending}
-      className={`px-3 py-1 rounded-full text-[11px] font-bold cursor-pointer border-none transition-all disabled:opacity-50 ${
+      className={`px-2.5 py-1 rounded text-[11px] font-medium cursor-pointer border-none transition-colors duration-150 disabled:opacity-50 ${
         activo
-          ? 'bg-brand-success-bg text-brand-success hover:bg-[rgba(16,185,129,0.2)]'
-          : 'bg-brand-danger-bg text-brand-danger hover:bg-[rgba(239,68,68,0.2)]'
+          ? 'bg-success-subtle text-success hover:bg-success-light'
+          : 'bg-danger-subtle text-danger hover:bg-danger-light'
       }`}
     >
       {isPending ? '...' : activo ? 'Activo' : 'Inactivo'}

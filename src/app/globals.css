@@ -1,39 +1,131 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
 
 @theme inline {
-  --color-brand-primary: #0F172A;
-  --color-brand-mid: #1E293B;
-  --color-brand-light: #334155;
-  --color-brand-accent: #F59E0B;
-  --color-brand-accent-dark: #D97706;
-  --color-brand-success: #10B981;
-  --color-brand-success-bg: #D1FAE5;
-  --color-brand-danger: #EF4444;
-  --color-brand-danger-bg: #FEE2E2;
-  --color-brand-warning: #F59E0B;
-  --color-brand-warning-bg: #FEF3C7;
-  --color-brand-blue: #3B82F6;
-  --color-brand-blue-bg: #DBEAFE;
-  --color-brand-purple: #8B5CF6;
-  --color-brand-purple-bg: #EDE9FE;
-  
-  --color-brand-bg: #F8FAFC;
-  --color-brand-card: #FFFFFF;
-  --color-brand-text: #0F172A;
-  --color-brand-text-mid: #475569;
-  --color-brand-text-light: #94A3B8;
-  --color-brand-border: #E2E8F0;
-  --color-brand-divider: #F1F5F9;
+  /* ─── Foreground (text hierarchy) ─── */
+  --color-ink: #1a1a1a;
+  --color-ink-secondary: #525252;
+  --color-ink-tertiary: #8a8a8a;
+  --color-ink-muted: #b0b0b0;
 
-  --color-background: var(--color-brand-bg);
-  --color-foreground: var(--color-brand-text);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* ─── Background (surface elevation) ─── */
+  --color-canvas: #f5f3f0;
+  --color-surface-0: #faf9f7;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #ffffff;
+
+  /* ─── Border (separation hierarchy) ─── */
+  --color-edge: rgba(0, 0, 0, 0.08);
+  --color-edge-strong: rgba(0, 0, 0, 0.12);
+  --color-edge-emphasis: rgba(0, 0, 0, 0.18);
+
+  /* ─── Brand accent (crane amber) ─── */
+  --color-amber: #e5940b;
+  --color-amber-hover: #cc8309;
+  --color-amber-subtle: rgba(229, 148, 11, 0.08);
+  --color-amber-light: rgba(229, 148, 11, 0.14);
+
+  /* ─── Semantic ─── */
+  --color-success: #16a34a;
+  --color-success-subtle: rgba(22, 163, 74, 0.08);
+  --color-success-light: rgba(22, 163, 74, 0.14);
+
+  --color-danger: #dc2626;
+  --color-danger-subtle: rgba(220, 38, 38, 0.08);
+  --color-danger-light: rgba(220, 38, 38, 0.14);
+
+  --color-warning: #d97706;
+  --color-warning-subtle: rgba(217, 119, 6, 0.08);
+  --color-warning-light: rgba(217, 119, 6, 0.14);
+
+  --color-info: #2563eb;
+  --color-info-subtle: rgba(37, 99, 235, 0.08);
+  --color-info-light: rgba(37, 99, 235, 0.14);
+
+  --color-purple: #7c3aed;
+  --color-purple-subtle: rgba(124, 58, 237, 0.08);
+
+  /* ─── Control tokens ─── */
+  --color-control-bg: rgba(0, 0, 0, 0.03);
+  --color-control-border: rgba(0, 0, 0, 0.12);
+  --color-control-focus: rgba(229, 148, 11, 0.4);
+
+  /* ─── Legacy aliases (for compatibility) ─── */
+  --color-brand-primary: var(--color-ink);
+  --color-brand-accent: var(--color-amber);
+  --color-brand-accent-dark: var(--color-amber-hover);
+  --color-brand-success: var(--color-success);
+  --color-brand-success-bg: var(--color-success-light);
+  --color-brand-danger: var(--color-danger);
+  --color-brand-danger-bg: var(--color-danger-light);
+  --color-brand-warning: var(--color-warning);
+  --color-brand-warning-bg: var(--color-warning-light);
+  --color-brand-blue: var(--color-info);
+  --color-brand-blue-bg: var(--color-info-light);
+  --color-brand-purple: var(--color-purple);
+  --color-brand-purple-bg: var(--color-purple-subtle);
+  --color-brand-bg: var(--color-canvas);
+  --color-brand-card: var(--color-surface-1);
+  --color-brand-text: var(--color-ink);
+  --color-brand-text-mid: var(--color-ink-secondary);
+  --color-brand-text-light: var(--color-ink-tertiary);
+  --color-brand-border: var(--color-edge);
+  --color-brand-divider: var(--color-edge);
+
+  /* ─── Typography ─── */
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, sans-serif;
 }
 
+/* ─── Base ─── */
 body {
-  background: var(--color-background);
-  color: var(--color-foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  font-optical-sizing: auto;
   @apply antialiased;
+}
+
+/* ─── Focus ─── */
+*:focus-visible {
+  outline: 2px solid var(--color-control-focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Selection ─── */
+::selection {
+  background: var(--color-amber-light);
+  color: var(--color-ink);
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-edge-strong);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-edge-emphasis);
+}
+
+/* ─── Tabular figures for data ─── */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Transitions ─── */
+@media (prefers-reduced-motion: no-preference) {
+  .transition-theme {
+    transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+  }
 }

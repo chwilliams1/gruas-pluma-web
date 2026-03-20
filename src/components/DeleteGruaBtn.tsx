@@ -15,10 +15,10 @@ export function DeleteGruaBtn({ gruaId }: { gruaId: string }) {
         }
       }}
       disabled={isPending}
-      className="p-2 rounded-lg text-brand-text-light hover:text-brand-danger hover:bg-brand-danger-bg transition-all cursor-pointer bg-transparent border-none disabled:opacity-50"
+      className="p-2 rounded-md text-ink-tertiary hover:text-danger hover:bg-danger-subtle transition-colors duration-150 cursor-pointer bg-transparent border-none disabled:opacity-50"
       title="Eliminar grúa"
     >
-      <Trash2 size={15} />
+      <Trash2 size={14} />
     </button>
   )
 }

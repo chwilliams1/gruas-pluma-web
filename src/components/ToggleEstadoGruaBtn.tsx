@@ -4,9 +4,9 @@ import { updateEstadoGrua } from '@/lib/actions'
 import { useTransition } from 'react'
 
 const estadoStyles: Record<string, string> = {
-  DISPONIBLE: 'bg-brand-success-bg text-brand-success',
-  EN_SERVICIO: 'bg-brand-blue-bg text-brand-blue',
-  MANTENCION: 'bg-[rgba(245,158,11,0.1)] text-brand-accent',
+  DISPONIBLE: 'bg-success-subtle text-success',
+  EN_SERVICIO: 'bg-info-subtle text-info',
+  MANTENCION: 'bg-amber-subtle text-amber',
 }
 
 const estadoLabels: Record<string, string> = {
@@ -28,7 +28,7 @@ export function ToggleEstadoGruaBtn({ gruaId, estado }: { gruaId: string, estado
     <button
       onClick={() => startTransition(() => updateEstadoGrua(gruaId, nextEstado[estado]))}
       disabled={isPending}
-      className={`px-3 py-1 rounded-full text-[11px] font-bold cursor-pointer border-none transition-all disabled:opacity-50 ${estadoStyles[estado] || ''}`}
+      className={`px-2.5 py-1 rounded text-[11px] font-medium cursor-pointer border-none transition-colors duration-150 disabled:opacity-50 ${estadoStyles[estado] || ''}`}
       title={`Cambiar a ${estadoLabels[nextEstado[estado]]}`}
     >
       {isPending ? '...' : estadoLabels[estado] || estado}

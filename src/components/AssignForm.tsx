@@ -15,10 +15,10 @@ export function AssignForm({ solicitudId, choferes }: { solicitudId: string, cho
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-3 items-center">
+    <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 sm:items-center">
       <select
         name="choferId"
-        className="px-4 py-2.5 rounded-lg border border-brand-border text-[13px] min-w-[200px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent transition-colors"
+        className="px-3 py-2.5 rounded-lg border border-control-border bg-control-bg text-[13px] text-ink sm:min-w-[200px] outline-none transition-colors duration-150 focus:border-amber focus:ring-2 focus:ring-control-focus"
       >
         <option value="">Asignar chofer...</option>
         {choferes.map(c => (
@@ -28,9 +28,9 @@ export function AssignForm({ solicitudId, choferes }: { solicitudId: string, cho
       <button
         type="submit"
         disabled={isPending}
-        className="px-6 py-2.5 rounded-lg bg-brand-accent hover:bg-brand-accent-dark transition-colors text-white text-[13px] font-bold cursor-pointer border-none shadow-sm disabled:opacity-50"
+        className="px-5 py-2.5 rounded-lg bg-amber hover:bg-amber-hover transition-colors duration-150 text-white text-[13px] font-medium cursor-pointer border-none disabled:opacity-50"
       >
-        {isPending ? 'Asignando...' : 'Asignar y notificar'}
+        {isPending ? 'Asignando...' : 'Asignar'}
       </button>
     </form>
   )

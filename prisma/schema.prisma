@@ -43,6 +43,7 @@ model Grua {
 model Cliente {
   id        String   @id @default(cuid())
   nombre    String
+  rut       String?
   telefono  String?
   direccion String?
   creadoEn  DateTime @default(now())
@@ -71,18 +72,22 @@ model Solicitud {
 }
 
 model Reporte {
-  id          String    @id @default(cuid())
-  codigo      String    @unique // Ej "RPT-0041"
-  solicitudId String    @unique
-  solicitud   Solicitud @relation(fields: [solicitudId], references: [id])
-  choferId    String
-  chofer      Usuario   @relation(fields: [choferId], references: [id])
-  fecha       String
-  horas       Float
-  descripcion String
-  evidencia   String?   // JSON array de urls de fotos o vacio
-  pagado      Boolean   @default(false)
-  factura     Boolean   @default(false)
-  monto       Float     @default(0)
-  creadoEn    DateTime  @default(now())
+  id              String    @id @default(cuid())
+  codigo          String    @unique // Ej "RPT-0041"
+  numeroReporte   Int?      // Numero secuencial del reporte (ej: 34928)
+  solicitudId     String    @unique
+  solicitud       Solicitud @relation(fields: [solicitudId], references: [id])
+  choferId        String
+  chofer          Usuario   @relation(fields: [choferId], references: [id])
+  fecha           String
+  horas           Float
+  horasExtra      Float     @default(0)
+  valorHora       Float     @default(60000) // Valor hora en pesos (ej: 60000, 65000)
+  descripcion     String
+  evidencia       String?   // JSON array de urls de fotos o vacio
+  pagado          Boolean   @default(false)
+  factura         Boolean   @default(false)
+  estadoReporte   String    @default("sin factura") // "facturado", "sin factura", "ESPERA OC"
+  monto           Float     @default(0)
+  creadoEn        DateTime  @default(now())
 }
