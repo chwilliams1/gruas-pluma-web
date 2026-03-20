@@ -85,6 +85,7 @@ model Reporte {
   valorHora       Float     @default(60000) // Valor hora en pesos (ej: 60000, 65000)
   descripcion     String
   evidencia       String?   // JSON array de urls de fotos o vacio
+  conAlzahombre   Boolean   @default(false)
   pagado          Boolean   @default(false)
   factura         Boolean   @default(false)
   estadoReporte   String    @default("sin factura") // "facturado", "sin factura", "ESPERA OC"

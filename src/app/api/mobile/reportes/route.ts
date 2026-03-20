@@ -84,7 +84,8 @@ export async function POST(req: Request) {
       }
 
       const horas = Math.max(0, Number(data.horas))
-      const valorHora = solicitud.gruaId ? 60000 : 45000
+      const conAlzahombre = !!data.conAlzahombre
+      const valorHora = conAlzahombre ? 65000 : 60000
 
       const result = await prisma.$transaction(async (tx) => {
         const rptCodigo = `RPT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
@@ -98,6 +99,7 @@ export async function POST(req: Request) {
             horas,
             descripcion: String(data.descripcion).slice(0, 2000),
             evidencia: data.evidencia || null,
+            conAlzahombre,
             valorHora,
             monto: horas * valorHora,
           },
@@ -130,10 +132,11 @@ export async function POST(req: Request) {
       }
 
       const horas = Math.max(0, Number(data.horas))
-      const valorHora = 45000
+      const conAlzahombre = !!data.conAlzahombre
+      const valorHora = conAlzahombre ? 65000 : 60000
 
       const result = await prisma.$transaction(async (tx) => {
-        // 1. Create or find client
+        // 1. Create client
         const cliente = await tx.cliente.create({
           data: {
             nombre: String(data.clienteNombre).trim().slice(0, 500),
@@ -169,6 +172,7 @@ export async function POST(req: Request) {
             horas,
             descripcion: String(data.descripcion).slice(0, 2000),
             evidencia: data.evidencia || null,
+            conAlzahombre,
             pagado: !!data.pagado,
             factura: !!data.factura,
             valorHora,
