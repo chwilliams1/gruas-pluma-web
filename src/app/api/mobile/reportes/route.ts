@@ -157,6 +157,7 @@ export async function POST(req: Request) {
             data: {
               nombre: String(data.clienteNombre).trim().slice(0, 500),
               telefono: data.clienteTelefono ? String(data.clienteTelefono).trim().slice(0, 50) : null,
+              rut: data.clienteRut ? String(data.clienteRut).trim().slice(0, 20) : null,
               direccion: String(data.direccion).trim().slice(0, 500),
             },
           })
