@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Fragment } from 'react'
 import { TogglePagadoBtn } from '@/components/TogglePagadoBtn'
 import { EditReporteBtn } from '@/components/EditReporteForm'
 import { DeleteReporteBtn } from '@/components/DeleteReporteBtn'
@@ -31,9 +31,10 @@ type Props = {
 }
 
 const estadoStyle = (estado: string) => {
-  switch (estado.toLowerCase()) {
-    case 'facturado': return 'bg-info-subtle text-info'
-    case 'espera oc': return 'bg-warning-subtle text-warning'
+  switch (estado) {
+    case 'FACTURADO': return 'bg-info-subtle text-info'
+    case 'POR FACTURAR': return 'bg-warning-subtle text-warning'
+    case 'ESPERA OC': return 'bg-amber-100 text-amber-700'
     default: return 'bg-[rgba(0,0,0,0.04)] text-ink-tertiary'
   }
 }
@@ -50,13 +51,14 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
       <table className="w-full text-left border-collapse table-fixed">
         <colgroup>
           <col className="w-[28px]" />
-          <col className="w-[18%]" />
-          <col className="w-[10%]" />
-          <col className="w-[12%]" />
-          <col className="w-[20%]" />
-          <col className="w-[7%]" />
+          <col className="w-[16%]" />
+          <col className="w-[9%]" />
           <col className="w-[11%]" />
-          <col className="w-[12%]" />
+          <col className="w-[17%]" />
+          <col className="w-[6%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+          <col className="w-[11%]" />
           <col className="w-[10%]" />
         </colgroup>
         <thead>
@@ -69,6 +71,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
             <th className="py-2.5 px-3 text-[11px] font-medium text-ink-tertiary uppercase tracking-[0.04em] text-right">Horas</th>
             <th className="py-2.5 px-3 text-[11px] font-medium text-ink-tertiary uppercase tracking-[0.04em] text-right">Monto</th>
             <th className="py-2.5 px-3 text-[11px] font-medium text-ink-tertiary uppercase tracking-[0.04em] text-center">Pago</th>
+            <th className="py-2.5 px-3 text-[11px] font-medium text-ink-tertiary uppercase tracking-[0.04em] text-center">Estado</th>
             <th className="py-2.5 px-3 text-[11px] font-medium text-ink-tertiary uppercase tracking-[0.04em] text-center">Acciones</th>
           </tr>
         </thead>
@@ -76,9 +79,8 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
           {reportes.map(r => {
             const isOpen = expandedId === r.id
             return (
-              <>
+              <Fragment key={r.id}>
                 <tr
-                  key={r.id}
                   className={`cursor-pointer transition-colors duration-100 border-b border-edge ${isOpen ? 'bg-[rgba(0,0,0,0.02)]' : 'hover:bg-[rgba(0,0,0,0.015)]'}`}
                   onClick={() => toggle(r.id)}
                 >
@@ -103,6 +105,11 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                   <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
                     <TogglePagadoBtn reporteId={r.id} pagado={r.pagado} />
                   </td>
+                  <td className="py-3 px-3 text-center">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${estadoStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
+                      {r.estadoReporte ?? 'SIN FACTURA'}
+                    </span>
+                  </td>
                   <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-0.5">
                       <DownloadPDFBtn data={{
@@ -119,7 +126,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                         horasExtra: r.horasExtra ?? 0,
                         valorHora: r.valorHora ?? 60000,
                         monto: r.monto,
-                        estadoReporte: r.estadoReporte ?? 'sin factura',
+                        estadoReporte: r.estadoReporte ?? 'SIN FACTURA',
                         pagado: r.pagado,
                       }} />
                       <EditReporteBtn
@@ -128,7 +135,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                           clienteId: r.solicitud.clienteId, fecha: r.fecha, horas: r.horas,
                           horasExtra: r.horasExtra ?? 0, valorHora: r.valorHora ?? 60000,
                           monto: r.monto, descripcion: r.descripcion,
-                          estadoReporte: r.estadoReporte ?? 'sin factura', pagado: r.pagado,
+                          estadoReporte: r.estadoReporte ?? 'SIN FACTURA', pagado: r.pagado,
                         }}
                         choferes={choferes}
                         clientes={clientes}
@@ -141,7 +148,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                 {isOpen && (
                   <tr key={`${r.id}-detail`} className="bg-[rgba(0,0,0,0.018)] border-b border-edge">
                     <td></td>
-                    <td colSpan={8} className="py-3 px-3">
+                    <td colSpan={9} className="py-3 px-3">
                       <div className="flex flex-wrap gap-x-10 gap-y-3">
                         <div>
                           <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">RUT</div>
@@ -157,8 +164,8 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                         </div>
                         <div>
                           <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">Estado Reporte</div>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${estadoStyle(r.estadoReporte ?? 'sin factura')}`}>
-                            {r.estadoReporte ?? 'sin factura'}
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${estadoStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
+                            {r.estadoReporte ?? 'SIN FACTURA'}
                           </span>
                         </div>
                         <div className="basis-full">
@@ -169,7 +176,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             )
           })}
         </tbody>

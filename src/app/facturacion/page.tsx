@@ -17,12 +17,14 @@ export default async function FacturacionPage() {
   const totalMonto = reportes.reduce((s, r) => s + r.monto, 0)
   const cobrado = reportes.filter(r => r.pagado).reduce((s, r) => s + r.monto, 0)
   const pendiente = reportes.filter(r => !r.pagado).reduce((s, r) => s + r.monto, 0)
-  const conFactura = reportes.filter(r => r.estadoReporte === 'facturado').length
+  const facturados = reportes.filter(r => r.estadoReporte === 'FACTURADO').length
+  const porFacturar = reportes.filter(r => r.estadoReporte === 'POR FACTURAR').length
 
   const estadoReporteStyle = (estado: string) => {
-    switch (estado.toLowerCase()) {
-      case 'facturado': return 'bg-brand-blue-bg text-brand-blue'
-      case 'espera oc': return 'bg-brand-warning-bg text-brand-accent'
+    switch (estado) {
+      case 'FACTURADO': return 'bg-brand-blue-bg text-brand-blue'
+      case 'POR FACTURAR': return 'bg-yellow-100 text-yellow-700'
+      case 'ESPERA OC': return 'bg-brand-warning-bg text-brand-accent'
       default: return 'bg-brand-divider text-brand-text-light'
     }
   }
@@ -40,7 +42,7 @@ export default async function FacturacionPage() {
         <KpiCard icon={<DollarSign size={20}/>} value={`$${(totalMonto/1000).toFixed(0)}k`} label="Total facturado" type="blue" />
         <KpiCard icon={<CheckCircle size={20}/>} value={`$${(cobrado/1000).toFixed(0)}k`} label="Cobrado" type="success" />
         <KpiCard icon={<AlertTriangle size={20}/>} value={`$${(pendiente/1000).toFixed(0)}k`} label="Pendiente de cobro" type="danger" />
-        <KpiCard icon={<FileText size={20}/>} value={conFactura} label="Facturados" />
+        <KpiCard icon={<FileText size={20}/>} value={`${facturados} / ${porFacturar}`} label="Facturados / Por facturar" />
       </div>
 
       {/* Progress bar */}
@@ -70,8 +72,8 @@ export default async function FacturacionPage() {
                 <div className="text-[13px] font-bold text-brand-text truncate">{r.solicitud.cliente.nombre}</div>
                 <div className="text-[11px] text-brand-text-light">{r.numeroReporte || r.codigo} · {r.fecha}</div>
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${estadoReporteStyle(r.estadoReporte ?? 'sin factura')}`}>
-                {r.estadoReporte ?? 'sin factura'}
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${estadoReporteStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
+                {r.estadoReporte ?? 'SIN FACTURA'}
               </span>
             </div>
             {r.solicitud.cliente.rut && (
@@ -131,8 +133,8 @@ export default async function FacturacionPage() {
                   <td className="py-4 px-4 text-[13px] text-brand-text-mid text-right">{(r.horasExtra ?? 0) > 0 ? r.horasExtra : '—'}</td>
                   <td className="py-4 px-4 text-[13px] font-bold text-brand-text text-right">${(r.monto ?? 0).toLocaleString('es-CL')}</td>
                   <td className="py-4 px-4 text-center">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${estadoReporteStyle(r.estadoReporte ?? 'sin factura')}`}>
-                      {r.estadoReporte ?? 'sin factura'}
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${estadoReporteStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
+                      {r.estadoReporte ?? 'SIN FACTURA'}
                     </span>
                   </td>
                   <td className="py-4 px-4 text-center">

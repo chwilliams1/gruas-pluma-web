@@ -463,7 +463,7 @@ export async function updateReporte(formData: FormData) {
   const horasExtra = safeParseFloat(formData.get('horasExtra') as string)
   const valorHora = safeParseFloat(formData.get('valorHora') as string, 60000)
   const descripcion = formData.get('descripcion') as string
-  const estadoReporte = formData.get('estadoReporte') as string || 'sin factura'
+  const estadoReporte = formData.get('estadoReporte') as string || 'SIN FACTURA'
   const pagado = formData.get('pagado') === 'true'
   const numeroReporteStr = formData.get('numeroReporte') as string
 
@@ -476,6 +476,7 @@ export async function updateReporte(formData: FormData) {
   }
 
   const monto = (horas + horasExtra) * valorHora
+  const factura = estadoReporte !== 'SIN FACTURA'
 
   const reporte = await prisma.reporte.findUnique({ where: { id } })
   if (!reporte) throw new Error('Reporte no encontrado')
@@ -500,7 +501,7 @@ export async function updateReporte(formData: FormData) {
         descripcion: isNonEmptyString(descripcion) ? sanitizeDescription(descripcion) : reporte.descripcion,
         estadoReporte,
         pagado,
-        factura: estadoReporte === 'facturado',
+        factura,
         monto,
         numeroReporte: safeParseInt(numeroReporteStr),
       }
@@ -533,7 +534,7 @@ export async function createReporte(formData: FormData) {
   const horasExtra = safeParseFloat(formData.get('horasExtra') as string)
   const valorHora = safeParseFloat(formData.get('valorHora') as string, 60000)
   const descripcion = formData.get('descripcion') as string
-  const estadoReporte = formData.get('estadoReporte') as string || 'sin factura'
+  const estadoReporte = formData.get('estadoReporte') as string || 'SIN FACTURA'
   const pagado = formData.get('pagado') === 'true'
   const numeroReporteStr = formData.get('numeroReporte') as string
 
@@ -579,8 +580,8 @@ export async function createReporte(formData: FormData) {
         descripcion: descSanitized,
         monto,
         pagado,
-        factura: estadoReporte === 'facturado',
-        estadoReporte: isValidEnum(estadoReporte, ESTADOS_REPORTE) ? estadoReporte : 'sin factura',
+        factura: estadoReporte !== 'SIN FACTURA',
+        estadoReporte: isValidEnum(estadoReporte, ESTADOS_REPORTE) ? estadoReporte : 'SIN FACTURA',
       }
     })
 
@@ -660,11 +661,13 @@ export async function importReportes(jsonData: string): Promise<{ created: numbe
     const numeroReporte = safeParseInt(numReporteStr)
 
     const esPagado = pagado === 'pagado' || pagado === 'si' || pagado === 'sí' || pagado === 'true'
-    let estadoRpt: string = 'sin factura'
+    let estadoRpt: string = 'SIN FACTURA'
     if (estadoReporte.includes('facturado') || estadoReporte === 'si' || estadoReporte === 'sí' || estadoReporte === 'true') {
-      estadoRpt = 'facturado'
+      estadoRpt = 'FACTURADO'
     } else if (estadoReporte.includes('espera')) {
       estadoRpt = 'ESPERA OC'
+    } else if (estadoReporte.includes('por facturar')) {
+      estadoRpt = 'POR FACTURAR'
     }
 
     try {
@@ -696,7 +699,7 @@ export async function importReportes(jsonData: string): Promise<{ created: numbe
             descripcion: descripcion || 'Importado desde CSV',
             monto,
             pagado: esPagado,
-            factura: estadoRpt === 'facturado',
+            factura: estadoRpt !== 'SIN FACTURA',
             estadoReporte: estadoRpt,
           }
         })

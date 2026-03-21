@@ -57,6 +57,7 @@ export async function POST(req: Request) {
           evidencia: data.evidencia || null,
           pagado: Boolean(data.pagado),
           factura: Boolean(data.factura),
+          estadoReporte: data.factura ? 'POR FACTURAR' : 'SIN FACTURA',
           valorHora,
           monto: horas * valorHora,
         }

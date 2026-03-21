@@ -6,7 +6,7 @@ export const ESTADOS_SOLICITUD = ['NUEVA', 'ASIGNADA', 'EN_CAMINO', 'EN_SITIO', 
 export const TIPOS_SOLICITUD = ['Izaje', 'Montaje', 'Descarga', 'Traslado', 'Otro'] as const
 export const ESTADOS_GRUA = ['DISPONIBLE', 'EN_SERVICIO', 'MANTENCION'] as const
 export const TIPOS_GRUA = ['Pluma', 'Telescópica', 'Articulada'] as const
-export const ESTADOS_REPORTE = ['facturado', 'sin factura', 'ESPERA OC'] as const
+export const ESTADOS_REPORTE = ['SIN FACTURA', 'POR FACTURAR', 'FACTURADO', 'ESPERA OC'] as const
 
 export type EstadoSolicitud = typeof ESTADOS_SOLICITUD[number]
 export type TipoSolicitud = typeof TIPOS_SOLICITUD[number]

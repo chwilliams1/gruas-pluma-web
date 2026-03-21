@@ -152,6 +152,7 @@ export async function POST(req: Request) {
           if (!cliente) {
             throw new Error('CLIENTE_NOT_FOUND')
           }
+
         } else {
           cliente = await tx.cliente.create({
             data: {
@@ -193,6 +194,7 @@ export async function POST(req: Request) {
             conAlzahombre,
             pagado: !!data.pagado,
             factura: !!data.factura,
+            estadoReporte: data.factura ? 'POR FACTURAR' : 'SIN FACTURA',
             valorHora,
             monto: horasCobradas * valorHora,
           },

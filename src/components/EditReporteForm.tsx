@@ -113,9 +113,10 @@ export function EditReporteBtn({ reporte, choferes, clientes }: {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Estado Reporte</label>
-                  <select name="estadoReporte" defaultValue={reporte.estadoReporte ?? 'sin factura'} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent">
-                    <option value="sin factura">Sin factura</option>
-                    <option value="facturado">Facturado</option>
+                  <select name="estadoReporte" defaultValue={reporte.estadoReporte ?? 'SIN FACTURA'} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent">
+                    <option value="SIN FACTURA">Sin factura</option>
+                    <option value="POR FACTURAR">Por facturar</option>
+                    <option value="FACTURADO">Facturado</option>
                     <option value="ESPERA OC">Espera OC</option>
                   </select>
                 </div>
