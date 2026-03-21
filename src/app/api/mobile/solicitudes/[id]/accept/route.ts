@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { authenticateRequest, unauthorizedResponse } from '@/lib/auth'
 import { getCorsHeaders, corsOptions } from '@/lib/cors'
+import crypto from 'crypto'
 
 export async function OPTIONS(req: Request) {
   return corsOptions(req)
@@ -41,10 +42,25 @@ export async function PATCH(
       )
     }
 
-    const updated = await prisma.solicitud.update({
-      where: { id },
-      data: { estado: 'EN_CAMINO' },
-      include: { cliente: true, grua: true },
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.solicitud.update({
+        where: { id },
+        data: { estado: 'EN_CAMINO' },
+        include: { cliente: true, grua: true },
+      })
+
+      await tx.historialEstado.create({
+        data: {
+          id: crypto.randomUUID(),
+          solicitudId: id,
+          estadoAnterior: 'ASIGNADA',
+          estadoNuevo: 'EN_CAMINO',
+          usuarioId: auth.userId,
+          nota: 'Solicitud aceptada por chofer',
+        },
+      })
+
+      return result
     })
 
     return NextResponse.json(updated, { headers })

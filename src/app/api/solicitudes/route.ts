@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { getCorsHeaders, corsOptions } from '@/lib/cors'
 import { isNonEmptyString, isValidEnum, ESTADOS_SOLICITUD, sanitizeString, sanitizeDescription } from '@/lib/validation'
+import { nextSolicitudCodigo } from '@/lib/correlativo'
 import crypto from 'crypto'
 
 export async function OPTIONS(req: Request) {
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Cliente no encontrado' }, { status: 404, headers })
     }
 
-    const codigo = `SOL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+    const codigo = await nextSolicitudCodigo(prisma)
 
     const solicitud = await prisma.solicitud.create({
       data: {
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
         clienteId: data.clienteId,
         tipo: sanitizeString(data.tipo, 50),
         descripcion: sanitizeDescription(data.descripcion),
-        fecha: sanitizeString(data.fecha, 50),
+        fecha: data.fecha ? new Date(data.fecha) : new Date(),
         hora: sanitizeString(data.hora, 50),
         direccion: sanitizeString(data.direccion, 300),
         gruaId: data.gruaId || null,

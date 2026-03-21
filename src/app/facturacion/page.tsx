@@ -3,6 +3,7 @@ import { KpiCard } from '@/components/ui/KpiCard'
 import { TogglePagadoBtn } from '@/components/TogglePagadoBtn'
 import { CycleEstadoBtn } from '@/components/CycleEstadoBtn'
 import { DollarSign, CheckCircle, AlertTriangle, FileText } from 'lucide-react'
+import { formatFecha } from '@/lib/formatDate'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,7 +63,7 @@ export default async function FacturacionPage() {
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="min-w-0">
                 <div className="text-[13px] font-bold text-brand-text truncate">{r.solicitud.cliente.nombre}</div>
-                <div className="text-[11px] text-brand-text-light">{r.numeroReporte || r.codigo} · {r.fecha}</div>
+                <div className="text-[11px] text-brand-text-light">{r.numeroReporte || r.codigo} · {formatFecha(r.fecha)}</div>
               </div>
               <CycleEstadoBtn reporteId={r.id} estado={r.estadoReporte ?? 'SIN FACTURA'} />
             </div>
@@ -117,7 +118,7 @@ export default async function FacturacionPage() {
                   <td className="py-4 px-4 text-[13px] font-semibold text-brand-primary">{r.numeroReporte || r.codigo}</td>
                   <td className="py-4 px-4 text-[13px] font-semibold text-brand-text">{r.solicitud.cliente.nombre}</td>
                   <td className="py-4 px-4 text-[12px] text-brand-text-light font-mono">{r.solicitud.cliente.rut || '—'}</td>
-                  <td className="py-4 px-4 text-[13px] text-brand-text-mid">{r.fecha}</td>
+                  <td className="py-4 px-4 text-[13px] text-brand-text-mid">{formatFecha(r.fecha)}</td>
                   <td className="py-4 px-4 text-[13px] text-brand-text-mid text-right">${(r.valorHora ?? 0).toLocaleString('es-CL')}</td>
                   <td className="py-4 px-4 text-[13px] text-brand-text-mid text-right">{r.horas}</td>
                   <td className="py-4 px-4 text-[13px] text-brand-text-mid text-right">{(r.horasExtra ?? 0) > 0 ? r.horasExtra : '—'}</td>

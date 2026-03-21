@@ -17,12 +17,18 @@ model Usuario {
   telefono  String?
   licencia  String?  // Clase de licencia ej "A-2", "A-4"
   activo    Boolean  @default(true)
+  pushToken String?  // Expo push notification token
   creadoEn  DateTime @default(now())
-  
-  solicitudes Solicitud[]
-  reportes    Reporte[]
-  gruaId      String?
-  grua        Grua?    @relation(fields: [gruaId], references: [id])
+  updatedAt DateTime @updatedAt
+
+  solicitudes      Solicitud[]
+  reportes         Reporte[]
+  gruaId           String?
+  grua             Grua?    @relation(fields: [gruaId], references: [id])
+  historialEstados HistorialEstado[]
+
+  @@index([rol])
+  @@index([email])
 }
 
 model Grua {
@@ -32,9 +38,10 @@ model Grua {
   modelo      String
   anio        Int?
   capacidad   String   // "25 ton", "50 ton"
-  tipo        String   // "Pluma", "Telescópica", "Articulada"
+  tipo        String   // "Pluma", "Telescopica", "Articulada"
   estado      String   @default("DISPONIBLE") // "DISPONIBLE", "EN_SERVICIO", "MANTENCION"
   creadoEn    DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   choferes    Usuario[]
   solicitudes Solicitud[]
@@ -47,8 +54,12 @@ model Cliente {
   telefono  String?
   direccion String?
   creadoEn  DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   solicitudes Solicitud[]
+
+  @@index([nombre])
+  @@index([rut])
 }
 
 model Solicitud {
@@ -62,13 +73,20 @@ model Solicitud {
   grua        Grua?    @relation(fields: [gruaId], references: [id])
   tipo        String   // "Izaje", "Montaje", "Descarga", "Traslado", "Otro"
   descripcion String
-  fecha       String   // "20 Mar 2026"
-  hora        String   // "Mañana" o "Tarde"
+  fecha       DateTime
+  hora        String   // "Manana" o "Tarde"
   direccion   String
   estado      String   @default("NUEVA") // "NUEVA", "ASIGNADA", "COMPLETADA"
   creadoEn    DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  reporte     Reporte?
+  reporte          Reporte?
+  historialEstados HistorialEstado[]
+
+  @@index([choferId])
+  @@index([clienteId])
+  @@index([estado])
+  @@index([fecha])
 }
 
 model Reporte {
@@ -79,7 +97,7 @@ model Reporte {
   solicitud       Solicitud @relation(fields: [solicitudId], references: [id])
   choferId        String
   chofer          Usuario   @relation(fields: [choferId], references: [id])
-  fecha           String
+  fecha           DateTime
   horas           Float
   horasExtra      Float     @default(0)
   valorHora       Float     @default(60000) // Valor hora en pesos (ej: 60000, 65000)
@@ -93,4 +111,34 @@ model Reporte {
   latitud         Float?
   longitud        Float?
   creadoEn        DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([choferId])
+  @@index([fecha])
+  @@index([pagado])
+}
+
+model Tarifa {
+  id            String   @id @default(cuid())
+  nombre        String   @unique // "standard", "alzahombre"
+  valorHora     Float    // 60000, 65000
+  minimoHoras   Float    @default(3) // Minimo de horas cobradas
+  activa        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model HistorialEstado {
+  id           String    @id @default(cuid())
+  solicitudId  String
+  solicitud    Solicitud @relation(fields: [solicitudId], references: [id])
+  estadoAnterior String?
+  estadoNuevo  String
+  nota         String?
+  usuarioId    String?
+  usuario      Usuario?  @relation(fields: [usuarioId], references: [id])
+  creadoEn     DateTime  @default(now())
+
+  @@index([solicitudId])
+  @@index([creadoEn])
 }

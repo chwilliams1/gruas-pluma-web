@@ -15,6 +15,7 @@ import {
   ESTADOS_REPORTE,
 } from '@/lib/validation'
 import crypto from 'crypto'
+import { nextReporteCodigo, nextSolicitudCodigo } from '@/lib/correlativo'
 
 function generateCode(prefix: string): string {
   return `${prefix}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
@@ -62,16 +63,14 @@ export async function createSolicitud(formData: FormData) {
   const cliente = await prisma.cliente.findUnique({ where: { id: clienteId } })
   if (!cliente) throw new Error('Cliente no encontrado')
 
-  // Convertir fecha de yyyy-mm-dd (input date) a dd/mm/yyyy
-  const fechaFormatted = fecha.includes('-') ? fecha.split('-').reverse().join('/') : fecha
-
+  const solCodigo = await nextSolicitudCodigo(prisma)
   await prisma.solicitud.create({
     data: {
-      codigo: generateCode('SOL'),
+      codigo: solCodigo,
       clienteId,
       tipo: sanitizeString(tipo, 50),
       descripcion: sanitizeDescription(descripcion),
-      fecha: sanitizeString(fechaFormatted, 50),
+      fecha: new Date(fecha),
       hora: sanitizeString(hora, 50),
       direccion: sanitizeString(direccion, 300),
       estado: 'NUEVA',
@@ -522,7 +521,7 @@ export async function updateReporte(formData: FormData) {
       where: { id },
       data: {
         choferId,
-        fecha: sanitizeString(fecha, 50),
+        fecha: new Date(fecha),
         horas,
         horasExtra,
         valorHora,
@@ -540,7 +539,7 @@ export async function updateReporte(formData: FormData) {
       data: {
         clienteId,
         choferId,
-        fecha: sanitizeString(fecha, 50),
+        fecha: new Date(fecha),
         descripcion: isNonEmptyString(descripcion) ? sanitizeDescription(descripcion) : undefined,
       }
     })
@@ -581,27 +580,29 @@ export async function createReporte(formData: FormData) {
   const descSanitized = isNonEmptyString(descripcion) ? sanitizeDescription(descripcion) : 'Reporte manual'
 
   const result = await prisma.$transaction(async (tx) => {
+    const solCodigo = await nextSolicitudCodigo(tx)
     const solicitud = await tx.solicitud.create({
       data: {
-        codigo: generateCode('SOL'),
+        codigo: solCodigo,
         clienteId,
         choferId,
         tipo: 'Otro',
         descripcion: descSanitized,
-        fecha: sanitizeString(fecha, 50),
+        fecha: new Date(fecha),
         hora: 'Mañana (8-12)',
         direccion: cliente.direccion || 'Sin dirección',
         estado: 'COMPLETADA',
       }
     })
 
+    const { codigo: rptCodigo, numeroReporte: autoNum } = await nextReporteCodigo(tx)
     const reporte = await tx.reporte.create({
       data: {
-        codigo: generateCode('RPT'),
-        numeroReporte: safeParseInt(numeroReporteStr),
+        codigo: rptCodigo,
+        numeroReporte: safeParseInt(numeroReporteStr) || autoNum,
         solicitudId: solicitud.id,
         choferId,
-        fecha: sanitizeString(fecha, 50),
+        fecha: new Date(fecha),
         horas,
         horasExtra,
         valorHora,
@@ -647,7 +648,7 @@ export async function importReportes(jsonData: string): Promise<{ created: numbe
     const horas = safeParseFloat(row['horas'] || '0')
     const horasExtra = safeParseFloat(row['h extra'] || row['horas_extra'] || row['hextra'] || '0')
     const descripcion = sanitizeDescription(row['informacion'] || row['descripcion'] || '')
-    const fecha = sanitizeString(row['fecha'] || '', 50)
+    const fechaStr = sanitizeString(row['fecha'] || '', 50)
     const montoStr = row['monto reporte'] || row['monto'] || ''
     const valorHoraStr = row['valor hora'] || row['valor_hora'] || ''
     const numReporteStr = row['n reporte'] || row['nreporte'] || row['numero_reporte'] || ''
@@ -655,8 +656,24 @@ export async function importReportes(jsonData: string): Promise<{ created: numbe
     const pagado = (row['estado'] || row['pagado'] || '').toLowerCase()
     const estadoReporte = (row['estado de reporte'] || row['estado_reporte'] || row['factura'] || '').toLowerCase()
 
-    if (!choferName || !clienteName || !fecha) {
+    if (!choferName || !clienteName || !fechaStr) {
       errors.push(`Fila ${rowNum}: faltan campos obligatorios (responsable/chofer, empresa/cliente, fecha)`)
+      continue
+    }
+
+    // Parse fecha: supports dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd
+    let fecha: Date
+    if (fechaStr.includes('/')) {
+      const [d, m, y] = fechaStr.split('/')
+      fecha = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)
+    } else if (/^\d{4}-/.test(fechaStr)) {
+      fecha = new Date(fechaStr)
+    } else {
+      const [d, m, y] = fechaStr.split('-')
+      fecha = new Date(`${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`)
+    }
+    if (isNaN(fecha.getTime())) {
+      errors.push(`Fila ${rowNum}: fecha invalida "${fechaStr}"`)
       continue
     }
 
@@ -700,9 +717,10 @@ export async function importReportes(jsonData: string): Promise<{ created: numbe
 
     try {
       await prisma.$transaction(async (tx) => {
+        const solCodigo = await nextSolicitudCodigo(tx)
         const solicitud = await tx.solicitud.create({
           data: {
-            codigo: generateCode('SOL'),
+            codigo: solCodigo,
             clienteId: cliente.id,
             choferId: chofer.id,
             tipo: 'Otro',
@@ -714,10 +732,11 @@ export async function importReportes(jsonData: string): Promise<{ created: numbe
           }
         })
 
+        const { codigo: rptCodigo, numeroReporte: autoNum } = await nextReporteCodigo(tx)
         await tx.reporte.create({
           data: {
-            codigo: generateCode('RPT'),
-            numeroReporte,
+            codigo: rptCodigo,
+            numeroReporte: numeroReporte || autoNum,
             solicitudId: solicitud.id,
             choferId: chofer.id,
             fecha,

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { authenticateRequest, unauthorizedResponse } from '@/lib/auth'
 import { getCorsHeaders, corsOptions } from '@/lib/cors'
+import crypto from 'crypto'
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   ASIGNADA: ['EN_CAMINO'],
@@ -57,10 +58,26 @@ export async function PATCH(
       )
     }
 
-    const updated = await prisma.solicitud.update({
-      where: { id },
-      data: { estado },
-      include: { cliente: true, grua: true },
+    const prevEstado = solicitud.estado
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const result = await tx.solicitud.update({
+        where: { id },
+        data: { estado },
+        include: { cliente: true, grua: true },
+      })
+
+      await tx.historialEstado.create({
+        data: {
+          id: crypto.randomUUID(),
+          solicitudId: id,
+          estadoAnterior: prevEstado,
+          estadoNuevo: estado,
+          usuarioId: auth.userId,
+        },
+      })
+
+      return result
     })
 
     return NextResponse.json(updated, { headers })

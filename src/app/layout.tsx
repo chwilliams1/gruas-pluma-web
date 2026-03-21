@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
-import { Sidebar } from '@/components/Sidebar'
+import { LayoutShell } from '@/components/LayoutShell'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Grúas Pluma | Dashboard',
+  title: 'Gruas Pluma | Dashboard',
   description: 'Panel administrativo web',
 }
 
@@ -15,12 +15,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className="flex min-h-screen bg-canvas text-ink">
-        <Sidebar />
-        <main className="flex-1 px-4 pt-[72px] pb-6 sm:px-6 lg:px-8 lg:pt-8 xl:px-10 max-h-screen overflow-auto relative z-0">
-          <div className="max-w-[1600px] mx-auto">
-            {children}
-          </div>
-        </main>
+        <LayoutShell>{children}</LayoutShell>
       </body>
     </html>
   )

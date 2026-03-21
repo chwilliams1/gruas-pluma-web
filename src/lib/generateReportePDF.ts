@@ -85,7 +85,11 @@ export async function generateAndDownloadPDF(data: ReportePDFData) {
   y += 7
 
   labelValue('Código:', data.codigo, col1X, y)
-  labelValue('Fecha:', data.fecha, col2X, y)
+  const fechaFormatted = (() => {
+    const d = new Date(data.fecha)
+    return isNaN(d.getTime()) ? data.fecha : d.toLocaleDateString('es-CL')
+  })()
+  labelValue('Fecha:', fechaFormatted, col2X, y)
   y += 6
   labelValue('Responsable:', data.choferNombre, col1X, y)
   labelValue('Estado:', data.pagado ? 'Pagado' : 'Pendiente de pago', col2X, y)

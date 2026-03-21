@@ -4,27 +4,56 @@ import { ImportClientesCSV } from '@/components/ImportClientesCSV'
 import { DeleteClienteBtn } from '@/components/DeleteClienteBtn'
 import { EditClienteBtn } from '@/components/EditClienteForm'
 import { Phone, MapPin } from 'lucide-react'
+import { SearchFilterBar, Pagination } from '@/components/SearchFilterBar'
+import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ClientesPage() {
-  const clientes = await prisma.cliente.findMany({
-    include: { _count: { select: { solicitudes: true } } },
-    orderBy: { creadoEn: 'desc' }
-  })
+const PAGE_SIZE = 25
+
+export default async function ClientesPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const params = await searchParams
+  const q = params.q || ''
+  const page = Math.max(1, parseInt(params.page || '1', 10))
+
+  const where: Prisma.ClienteWhereInput = {}
+
+  if (q) {
+    where.OR = [
+      { nombre: { contains: q, mode: 'insensitive' } },
+      { rut: { contains: q, mode: 'insensitive' } },
+      { telefono: { contains: q, mode: 'insensitive' } },
+      { direccion: { contains: q, mode: 'insensitive' } },
+    ]
+  }
+
+  const [clientes, totalCount] = await Promise.all([
+    prisma.cliente.findMany({
+      where,
+      include: { _count: { select: { solicitudes: true } } },
+      orderBy: { creadoEn: 'desc' },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    prisma.cliente.count({ where }),
+  ])
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE)
 
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6 sm:mb-8">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-brand-text m-0">Clientes</h1>
-          <p className="text-[13px] text-brand-text-light mt-1">{clientes.length} clientes registrados</p>
+          <p className="text-[13px] text-brand-text-light mt-1">{totalCount} clientes registrados</p>
         </div>
         <div className="flex gap-2 sm:gap-3">
           <NuevoClienteForm />
           <ImportClientesCSV />
         </div>
       </div>
+
+      <SearchFilterBar placeholder="Buscar por nombre, RUT, telefono..." />
 
       {/* Mobile cards */}
       <div className="flex flex-col gap-3 md:hidden">
@@ -80,8 +109,8 @@ export default async function ClientesPage() {
               <tr className="bg-brand-divider text-[11px] font-bold text-brand-text-light uppercase tracking-wider">
                 <th className="py-3 px-6 border-b-2 border-brand-border">Cliente</th>
                 <th className="py-3 px-6 border-b-2 border-brand-border">RUT</th>
-                <th className="py-3 px-6 border-b-2 border-brand-border">Teléfono</th>
-                <th className="py-3 px-6 border-b-2 border-brand-border">Dirección</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border">Telefono</th>
+                <th className="py-3 px-6 border-b-2 border-brand-border">Direccion</th>
                 <th className="py-3 px-6 border-b-2 border-brand-border text-center">Solicitudes</th>
                 <th className="py-3 px-6 border-b-2 border-brand-border w-12"></th>
               </tr>
@@ -135,6 +164,8 @@ export default async function ClientesPage() {
           <div className="text-[13px] text-brand-text-light py-12 text-center italic">No hay clientes registrados</div>
         )}
       </div>
+
+      <Pagination currentPage={page} totalPages={totalPages} />
     </div>
   )
 }

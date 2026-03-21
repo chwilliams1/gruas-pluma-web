@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { LayoutDashboard, ClipboardList, Send, Users, FileText, BarChart3, Construction, Truck, HardHat, Menu, X } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Send, Users, FileText, BarChart3, Construction, Truck, HardHat, Menu, X, LogOut, Settings } from 'lucide-react'
 
 const SidebarItem = ({ icon, label, href, badge, onClick }: { icon: React.ReactNode, label: string, href: string, badge?: React.ReactNode, onClick?: () => void }) => {
   const pathname = usePathname()
@@ -31,6 +31,11 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   )
+}
+
+function handleLogout() {
+  document.cookie = 'admin_token=; path=/; max-age=0'
+  window.location.href = '/login'
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
@@ -62,16 +67,28 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <SectionLabel>Finanzas</SectionLabel>
         <SidebarItem icon={<FileText size={18} />} label="Facturación" href="/facturacion" onClick={onNavigate} />
         <SidebarItem icon={<BarChart3 size={18} />} label="Estadísticas" href="/estadisticas" onClick={onNavigate} />
+
+        <SectionLabel>Configuracion</SectionLabel>
+        <SidebarItem icon={<Settings size={18} />} label="Tarifas" href="/tarifas" onClick={onNavigate} />
       </nav>
 
-      <div className="px-4 py-4 border-t border-edge flex items-center gap-3 cursor-pointer hover:bg-[rgba(0,0,0,0.02)] transition-colors duration-150">
-        <div className="w-8 h-8 rounded-full bg-amber flex items-center justify-center text-[11px] font-semibold text-white">
-          CD
+      <div className="px-4 py-4 border-t border-edge">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-8 h-8 rounded-full bg-amber flex items-center justify-center text-[11px] font-semibold text-white">
+            AD
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[13px] font-medium text-ink truncate">Admin</div>
+            <div className="text-[11px] text-ink-tertiary">Administrador</div>
+          </div>
         </div>
-        <div className="min-w-0">
-          <div className="text-[13px] font-medium text-ink truncate">Charles Duarte</div>
-          <div className="text-[11px] text-ink-tertiary">Admin</div>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-[12px] text-ink-tertiary hover:text-danger hover:bg-danger/5 transition-colors duration-150"
+        >
+          <LogOut size={14} />
+          <span>Cerrar sesion</span>
+        </button>
       </div>
     </>
   )

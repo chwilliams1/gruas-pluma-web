@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 import { isNonEmptyString, isPositiveNumber } from '@/lib/validation'
+import { nextReporteCodigo } from '@/lib/correlativo'
 import crypto from 'crypto'
 
 export async function GET() {
@@ -43,15 +44,17 @@ export async function POST(req: Request) {
 
     const horas = Math.max(0, Number(data.horas))
     const valorHora = Number(data.valorHora) || 60000
-    const codigo = `RPT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
 
     const result = await prisma.$transaction(async (tx) => {
+      const { codigo, numeroReporte } = await nextReporteCodigo(tx)
+
       const reporte = await tx.reporte.create({
         data: {
           codigo,
+          numeroReporte,
           solicitudId: data.solicitudId,
           choferId: data.choferId,
-          fecha: new Date().toLocaleDateString('es-CL'),
+          fecha: new Date(),
           horas,
           descripcion: String(data.descripcion).slice(0, 2000),
           evidencia: data.evidencia || null,

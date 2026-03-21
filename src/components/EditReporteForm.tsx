@@ -3,6 +3,7 @@
 import { updateReporte } from '@/lib/actions'
 import { useState, useTransition, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { toInputDate } from '@/lib/formatDate'
 import { Pencil, X } from 'lucide-react'
 
 type ReporteData = {
@@ -82,7 +83,7 @@ export function EditReporteBtn({ reporte, choferes, clientes }: {
               <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">Fecha</label>
-                  <input name="fecha" type="text" required defaultValue={reporte.fecha} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
+                  <input name="fecha" type="date" required defaultValue={toInputDate(reporte.fecha)} className="w-full px-4 py-2.5 rounded-lg border border-brand-border text-[13px] outline-none bg-brand-bg text-brand-text focus:border-brand-accent" />
                 </div>
                 <div className="flex-1">
                   <label className="text-[12px] font-bold text-brand-text-mid uppercase tracking-wider block mb-1.5">N° Reporte</label>

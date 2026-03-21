@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { authenticateRequest, unauthorizedResponse } from '@/lib/auth'
 import { getCorsHeaders, corsOptions } from '@/lib/cors'
 import { isNonEmptyString, isPositiveNumber } from '@/lib/validation'
+import { nextReporteCodigo, nextSolicitudCodigo } from '@/lib/correlativo'
 import crypto from 'crypto'
 
 export async function OPTIONS(req: Request) {
@@ -34,6 +35,17 @@ export async function GET(req: Request) {
   }
 }
 
+async function getTarifas() {
+  const tarifas = await prisma.tarifa.findMany({ where: { activa: true } })
+  const standard = tarifas.find(t => t.nombre === 'standard')
+  const alzahombre = tarifas.find(t => t.nombre === 'alzahombre')
+  return {
+    valorHoraStandard: standard?.valorHora ?? 60000,
+    valorHoraAlzahombre: alzahombre?.valorHora ?? 65000,
+    minimoHoras: standard?.minimoHoras ?? 3,
+  }
+}
+
 export async function POST(req: Request) {
   const headers = getCorsHeaders(req)
   const auth = authenticateRequest(req)
@@ -41,6 +53,7 @@ export async function POST(req: Request) {
 
   try {
     const data = await req.json()
+    const tarifas = await getTarifas()
 
     // Determine flow: "asignado" (has solicitudId) or "directo" (has clienteNombre)
     const isDirecto = !data.solicitudId && (isNonEmptyString(data.clienteNombre) || isNonEmptyString(data.clienteId))
@@ -84,21 +97,25 @@ export async function POST(req: Request) {
       }
 
       const horasReales = Math.max(0, Number(data.horas))
-      const horasCobradas = Math.max(3, horasReales)
+      const horasCobradas = Math.max(tarifas.minimoHoras, horasReales)
       const conAlzahombre = !!data.conAlzahombre
-      const valorHora = conAlzahombre ? 65000 : 60000
+      const valorHora = conAlzahombre ? tarifas.valorHoraAlzahombre : tarifas.valorHoraStandard
       const latitud = data.latitud != null ? parseFloat(data.latitud) : null
       const longitud = data.longitud != null ? parseFloat(data.longitud) : null
 
       const result = await prisma.$transaction(async (tx) => {
-        const rptCodigo = `RPT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+        const { codigo: rptCodigo, numeroReporte } = await nextReporteCodigo(tx)
+
+        // Get previous estado for audit trail
+        const prevEstado = solicitud.estado
 
         const reporte = await tx.reporte.create({
           data: {
             codigo: rptCodigo,
+            numeroReporte,
             solicitudId: data.solicitudId,
             choferId: auth.userId,
-            fecha: new Date().toLocaleDateString('es-CL'),
+            fecha: new Date(),
             horas: horasReales,
             descripcion: String(data.descripcion).slice(0, 2000),
             evidencia: data.evidencia || null,
@@ -112,6 +129,18 @@ export async function POST(req: Request) {
         await tx.solicitud.update({
           where: { id: data.solicitudId },
           data: { estado: 'COMPLETADA' },
+        })
+
+        // Audit trail
+        await tx.historialEstado.create({
+          data: {
+            id: crypto.randomUUID(),
+            solicitudId: data.solicitudId,
+            estadoAnterior: prevEstado,
+            estadoNuevo: 'COMPLETADA',
+            usuarioId: auth.userId,
+            nota: `Reporte ${rptCodigo} creado`,
+          },
         })
 
         return reporte
@@ -143,9 +172,9 @@ export async function POST(req: Request) {
       }
 
       const horasReales = Math.max(0, Number(data.horas))
-      const horasCobradas = Math.max(3, horasReales)
+      const horasCobradas = Math.max(tarifas.minimoHoras, horasReales)
       const conAlzahombre = !!data.conAlzahombre
-      const valorHora = conAlzahombre ? 65000 : 60000
+      const valorHora = conAlzahombre ? tarifas.valorHoraAlzahombre : tarifas.valorHoraStandard
       const latitud = data.latitud != null ? parseFloat(data.latitud) : null
       const longitud = data.longitud != null ? parseFloat(data.longitud) : null
 
@@ -170,7 +199,7 @@ export async function POST(req: Request) {
         }
 
         // 2. Create solicitud
-        const solCodigo = `SOL-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+        const solCodigo = await nextSolicitudCodigo(tx)
         const solicitud = await tx.solicitud.create({
           data: {
             codigo: solCodigo,
@@ -178,7 +207,7 @@ export async function POST(req: Request) {
             choferId: auth.userId,
             tipo: data.tipo || 'Otro',
             descripcion: String(data.descripcion).slice(0, 2000),
-            fecha: new Date().toLocaleDateString('es-CL'),
+            fecha: new Date(),
             hora: data.horaInicio || 'Sin especificar',
             direccion: String(data.direccion).trim().slice(0, 500),
             estado: 'COMPLETADA',
@@ -186,13 +215,14 @@ export async function POST(req: Request) {
         })
 
         // 3. Create reporte
-        const rptCodigo = `RPT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
+        const { codigo: rptCodigo, numeroReporte } = await nextReporteCodigo(tx)
         const reporte = await tx.reporte.create({
           data: {
             codigo: rptCodigo,
+            numeroReporte,
             solicitudId: solicitud.id,
             choferId: auth.userId,
-            fecha: new Date().toLocaleDateString('es-CL'),
+            fecha: new Date(),
             horas: horasReales,
             descripcion: String(data.descripcion).slice(0, 2000),
             evidencia: data.evidencia || null,

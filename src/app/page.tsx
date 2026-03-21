@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { KpiCard } from '@/components/ui/KpiCard'
 import { Badge } from '@/components/ui/Badge'
 import { FileText, Clock, DollarSign, AlertTriangle } from 'lucide-react'
+import { formatFecha } from '@/lib/formatDate'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,7 +56,7 @@ export default async function DashboardPage() {
                   </Badge>
                 </div>
                 <div className="text-[12px] text-brand-text-light line-clamp-2">
-                  {s.tipo} · {s.fecha} · {s.hora} {s.chofer && `· ${s.chofer.nombre}`}
+                  {s.tipo} · {formatFecha(s.fecha)} · {s.hora} {s.chofer && `· ${s.chofer.nombre}`}
                 </div>
               </div>
             ))}

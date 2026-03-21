@@ -7,6 +7,7 @@ import { DeleteReporteBtn } from '@/components/DeleteReporteBtn'
 import { DownloadPDFBtn } from '@/components/DownloadPDFBtn'
 import { CycleEstadoBtn } from '@/components/CycleEstadoBtn'
 import { ChevronRight } from 'lucide-react'
+import { formatFecha } from '@/lib/formatDate'
 
 type Reporte = {
   id: string
@@ -90,7 +91,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                     </div>
                   </td>
                   <td className="py-3 px-3 text-[13px] font-semibold text-ink tabular-nums">{r.numeroReporte || r.codigo}</td>
-                  <td className="py-3 px-3 text-[13px] text-ink-secondary whitespace-nowrap">{r.fecha}</td>
+                  <td className="py-3 px-3 text-[13px] text-ink-secondary whitespace-nowrap">{formatFecha(r.fecha)}</td>
                   <td className="py-3 px-3 text-[13px] font-medium text-ink truncate">{r.solicitud.cliente.nombre}</td>
                   <td className="py-3 px-3 text-[13px] text-ink-secondary text-right tabular-nums">
                     {r.horas}{(r.horasExtra ?? 0) > 0 ? <span className="text-ink-muted text-[11px]">+{r.horasExtra}</span> : ''}
@@ -163,23 +164,37 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                         <div>
                           <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">Ubicación</div>
                           <div className="text-[13px] text-ink-secondary">
-                            {r.solicitud.direccion && <span>{r.solicitud.direccion}</span>}
-                            {r.latitud != null && r.longitud != null ? (
-                              <>
-                                {r.solicitud.direccion && <span> · </span>}
-                                <a
-                                  href={`https://www.google.com/maps?q=${r.latitud},${r.longitud}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-info hover:underline"
-                                  onClick={e => e.stopPropagation()}
-                                >
-                                  Ver en Google Maps
-                                </a>
-                              </>
-                            ) : !r.solicitud.direccion ? (
-                              <span className="text-ink-muted">Sin ubicación</span>
-                            ) : null}
+                            {(() => {
+                              let lat = r.latitud
+                              let lng = r.longitud
+                              const dir = r.solicitud.direccion
+                              // Fallback: parse coords from direccion if latitud/longitud are null
+                              if (lat == null && lng == null && dir) {
+                                const m = dir.match(/^(-?\d+\.\d+),\s*(-?\d+\.\d+)$/)
+                                if (m) { lat = parseFloat(m[1]); lng = parseFloat(m[2]) }
+                              }
+                              const isCoordDir = dir && /^-?\d+\.\d+,\s*-?\d+\.\d+$/.test(dir)
+                              const displayDir = dir && !isCoordDir ? dir : null
+
+                              if (lat != null && lng != null) {
+                                return (
+                                  <>
+                                    {displayDir && <span>{displayDir} · </span>}
+                                    <a
+                                      href={`https://www.google.com/maps?q=${lat},${lng}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-info hover:underline"
+                                      onClick={e => e.stopPropagation()}
+                                    >
+                                      Ver en Google Maps
+                                    </a>
+                                  </>
+                                )
+                              }
+                              if (displayDir) return <span>{displayDir}</span>
+                              return <span className="text-ink-muted">Sin ubicación</span>
+                            })()}
                           </div>
                         </div>
                         <div className="basis-full">
