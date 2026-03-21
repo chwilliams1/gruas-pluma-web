@@ -13,7 +13,7 @@ type Reporte = {
   id: string
   codigo: string
   numeroReporte: number | null
-  fecha: string
+  fecha: string | Date
   horas: number
   horasExtra: number | null
   valorHora: number | null
@@ -108,7 +108,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                       <DownloadPDFBtn data={{
                         codigo: r.codigo,
                         numeroReporte: r.numeroReporte,
-                        fecha: r.fecha,
+                        fecha: typeof r.fecha === 'string' ? r.fecha : r.fecha.toISOString(),
                         choferNombre: r.chofer.nombre,
                         clienteNombre: r.solicitud.cliente.nombre,
                         clienteRut: r.solicitud.cliente.rut,
@@ -127,7 +127,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                       <EditReporteBtn
                         reporte={{
                           id: r.id, numeroReporte: r.numeroReporte, choferId: r.choferId,
-                          clienteId: r.solicitud.clienteId, fecha: r.fecha, horas: r.horas,
+                          clienteId: r.solicitud.clienteId, fecha: typeof r.fecha === 'string' ? r.fecha : r.fecha.toISOString(), horas: r.horas,
                           horasExtra: r.horasExtra ?? 0, valorHora: r.valorHora ?? 60000,
                           monto: r.monto, descripcion: r.descripcion,
                           estadoReporte: r.estadoReporte ?? 'SIN FACTURA', pagado: r.pagado,
