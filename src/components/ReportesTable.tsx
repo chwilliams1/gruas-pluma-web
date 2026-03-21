@@ -5,6 +5,7 @@ import { TogglePagadoBtn } from '@/components/TogglePagadoBtn'
 import { EditReporteBtn } from '@/components/EditReporteForm'
 import { DeleteReporteBtn } from '@/components/DeleteReporteBtn'
 import { DownloadPDFBtn } from '@/components/DownloadPDFBtn'
+import { CycleEstadoBtn } from '@/components/CycleEstadoBtn'
 import { ChevronRight } from 'lucide-react'
 
 type Reporte = {
@@ -28,15 +29,6 @@ type Props = {
   reportes: Reporte[]
   choferes: { id: string; nombre: string }[]
   clientes: { id: string; nombre: string }[]
-}
-
-const estadoStyle = (estado: string) => {
-  switch (estado) {
-    case 'FACTURADO': return 'bg-info-subtle text-info'
-    case 'POR FACTURAR': return 'bg-warning-subtle text-warning'
-    case 'ESPERA OC': return 'bg-amber-100 text-amber-700'
-    default: return 'bg-[rgba(0,0,0,0.04)] text-ink-tertiary'
-  }
 }
 
 export function ReportesTable({ reportes, choferes, clientes }: Props) {
@@ -105,10 +97,8 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                   <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
                     <TogglePagadoBtn reporteId={r.id} pagado={r.pagado} />
                   </td>
-                  <td className="py-3 px-3 text-center">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${estadoStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
-                      {r.estadoReporte ?? 'SIN FACTURA'}
-                    </span>
+                  <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
+                    <CycleEstadoBtn reporteId={r.id} estado={r.estadoReporte ?? 'SIN FACTURA'} />
                   </td>
                   <td className="py-3 px-3 text-center" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-0.5">
@@ -164,9 +154,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                         </div>
                         <div>
                           <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">Estado Reporte</div>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${estadoStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
-                            {r.estadoReporte ?? 'SIN FACTURA'}
-                          </span>
+                          <CycleEstadoBtn reporteId={r.id} estado={r.estadoReporte ?? 'SIN FACTURA'} />
                         </div>
                         <div className="basis-full">
                           <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">Descripción</div>

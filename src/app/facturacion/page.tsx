@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { KpiCard } from '@/components/ui/KpiCard'
 import { TogglePagadoBtn } from '@/components/TogglePagadoBtn'
+import { CycleEstadoBtn } from '@/components/CycleEstadoBtn'
 import { DollarSign, CheckCircle, AlertTriangle, FileText } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -19,15 +20,6 @@ export default async function FacturacionPage() {
   const pendiente = reportes.filter(r => !r.pagado).reduce((s, r) => s + r.monto, 0)
   const facturados = reportes.filter(r => r.estadoReporte === 'FACTURADO').length
   const porFacturar = reportes.filter(r => r.estadoReporte === 'POR FACTURAR').length
-
-  const estadoReporteStyle = (estado: string) => {
-    switch (estado) {
-      case 'FACTURADO': return 'bg-brand-blue-bg text-brand-blue'
-      case 'POR FACTURAR': return 'bg-yellow-100 text-yellow-700'
-      case 'ESPERA OC': return 'bg-brand-warning-bg text-brand-accent'
-      default: return 'bg-brand-divider text-brand-text-light'
-    }
-  }
 
   return (
     <div>
@@ -72,9 +64,7 @@ export default async function FacturacionPage() {
                 <div className="text-[13px] font-bold text-brand-text truncate">{r.solicitud.cliente.nombre}</div>
                 <div className="text-[11px] text-brand-text-light">{r.numeroReporte || r.codigo} · {r.fecha}</div>
               </div>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${estadoReporteStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
-                {r.estadoReporte ?? 'SIN FACTURA'}
-              </span>
+              <CycleEstadoBtn reporteId={r.id} estado={r.estadoReporte ?? 'SIN FACTURA'} />
             </div>
             {r.solicitud.cliente.rut && (
               <div className="text-[11px] text-brand-text-light font-mono mb-2">RUT: {r.solicitud.cliente.rut}</div>
@@ -133,9 +123,7 @@ export default async function FacturacionPage() {
                   <td className="py-4 px-4 text-[13px] text-brand-text-mid text-right">{(r.horasExtra ?? 0) > 0 ? r.horasExtra : '—'}</td>
                   <td className="py-4 px-4 text-[13px] font-bold text-brand-text text-right">${(r.monto ?? 0).toLocaleString('es-CL')}</td>
                   <td className="py-4 px-4 text-center">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${estadoReporteStyle(r.estadoReporte ?? 'SIN FACTURA')}`}>
-                      {r.estadoReporte ?? 'SIN FACTURA'}
-                    </span>
+                    <CycleEstadoBtn reporteId={r.id} estado={r.estadoReporte ?? 'SIN FACTURA'} />
                   </td>
                   <td className="py-4 px-4 text-center">
                     <TogglePagadoBtn reporteId={r.id} pagado={r.pagado} />

@@ -98,6 +98,34 @@ export async function togglePagado(reporteId: string) {
   revalidatePath('/')
 }
 
+const ESTADO_CYCLE: Record<string, string> = {
+  'SIN FACTURA': 'POR FACTURAR',
+  'POR FACTURAR': 'FACTURADO',
+  'FACTURADO': 'ESPERA OC',
+  'ESPERA OC': 'SIN FACTURA',
+}
+
+export async function cycleEstadoReporte(reporteId: string) {
+  if (!isNonEmptyString(reporteId)) throw new Error('reporteId es requerido')
+
+  const reporte = await prisma.reporte.findUnique({ where: { id: reporteId } })
+  if (!reporte) throw new Error('Reporte no encontrado')
+
+  const current = reporte.estadoReporte ?? 'SIN FACTURA'
+  const next = ESTADO_CYCLE[current] ?? 'SIN FACTURA'
+
+  await prisma.reporte.update({
+    where: { id: reporteId },
+    data: {
+      estadoReporte: next,
+      factura: next !== 'SIN FACTURA',
+    }
+  })
+  revalidatePath('/reportes')
+  revalidatePath('/facturacion')
+  revalidatePath('/')
+}
+
 // ─── Clientes ───
 
 export async function createCliente(formData: FormData) {
