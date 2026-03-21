@@ -14,6 +14,8 @@ export type ReportePDFData = {
   monto: number
   estadoReporte: string
   pagado: boolean
+  latitud: number | null
+  longitud: number | null
 }
 
 export async function generateAndDownloadPDF(data: ReportePDFData) {
@@ -116,6 +118,34 @@ export async function generateAndDownloadPDF(data: ReportePDFData) {
   y += 4
   drawLine(y)
   y += 8
+
+  // ═══ UBICACIÓN ═══
+  if (data.latitud != null && data.longitud != null) {
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(amber)
+    doc.text('UBICACIÓN', col1X, y)
+    y += 7
+
+    if (data.clienteDireccion) {
+      labelValue('Dirección:', data.clienteDireccion, col1X, y)
+      y += 6
+    }
+
+    const mapsUrl = `https://www.google.com/maps?q=${data.latitud},${data.longitud}`
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8.5)
+    doc.setTextColor(inkTertiary)
+    doc.text('GOOGLE MAPS:', col1X, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor('#1a73e8')
+    doc.textWithLink(mapsUrl, col1X + 40, y, { url: mapsUrl })
+
+    y += 8
+    drawLine(y)
+    y += 8
+  }
 
   // ═══ DESCRIPTION ═══
   doc.setFont('helvetica', 'bold')

@@ -22,7 +22,9 @@ type Reporte = {
   estadoReporte: string | null
   choferId: string
   chofer: { id: string; nombre: string }
-  solicitud: { clienteId: string; cliente: { nombre: string; rut: string | null } }
+  latitud: number | null
+  longitud: number | null
+  solicitud: { clienteId: string; direccion: string; cliente: { nombre: string; rut: string | null } }
 }
 
 type Props = {
@@ -109,7 +111,7 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                         choferNombre: r.chofer.nombre,
                         clienteNombre: r.solicitud.cliente.nombre,
                         clienteRut: r.solicitud.cliente.rut,
-                        clienteDireccion: null,
+                        clienteDireccion: r.solicitud.direccion || null,
                         clienteTelefono: null,
                         descripcion: r.descripcion,
                         horas: r.horas,
@@ -118,6 +120,8 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                         monto: r.monto,
                         estadoReporte: r.estadoReporte ?? 'SIN FACTURA',
                         pagado: r.pagado,
+                        latitud: r.latitud,
+                        longitud: r.longitud,
                       }} />
                       <EditReporteBtn
                         reporte={{
@@ -155,6 +159,28 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
                         <div>
                           <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">Estado Reporte</div>
                           <CycleEstadoBtn reporteId={r.id} estado={r.estadoReporte ?? 'SIN FACTURA'} />
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">Ubicación</div>
+                          <div className="text-[13px] text-ink-secondary">
+                            {r.solicitud.direccion && <span>{r.solicitud.direccion}</span>}
+                            {r.latitud != null && r.longitud != null ? (
+                              <>
+                                {r.solicitud.direccion && <span> · </span>}
+                                <a
+                                  href={`https://www.google.com/maps?q=${r.latitud},${r.longitud}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-info hover:underline"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  Ver en Google Maps
+                                </a>
+                              </>
+                            ) : !r.solicitud.direccion ? (
+                              <span className="text-ink-muted">Sin ubicación</span>
+                            ) : null}
+                          </div>
                         </div>
                         <div className="basis-full">
                           <div className="text-[10px] font-medium text-ink-muted uppercase tracking-[0.04em] mb-0.5">Descripción</div>

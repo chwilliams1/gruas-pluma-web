@@ -63,6 +63,8 @@ export function NuevoReporteForm({ choferes, clientes }: {
             monto: (horas + horasExtra) * valorHora,
             estadoReporte,
             pagado,
+            latitud: null,
+            longitud: null,
           })
         } catch {
           // PDF failed silently — report was still created

@@ -87,6 +87,8 @@ export async function POST(req: Request) {
       const horasCobradas = Math.max(3, horasReales)
       const conAlzahombre = !!data.conAlzahombre
       const valorHora = conAlzahombre ? 65000 : 60000
+      const latitud = data.latitud != null ? parseFloat(data.latitud) : null
+      const longitud = data.longitud != null ? parseFloat(data.longitud) : null
 
       const result = await prisma.$transaction(async (tx) => {
         const rptCodigo = `RPT-${crypto.randomUUID().slice(0, 8).toUpperCase()}`
@@ -103,6 +105,7 @@ export async function POST(req: Request) {
             conAlzahombre,
             valorHora,
             monto: horasCobradas * valorHora,
+            ...(latitud != null && longitud != null ? { latitud, longitud } : {}),
           },
         })
 
@@ -143,6 +146,8 @@ export async function POST(req: Request) {
       const horasCobradas = Math.max(3, horasReales)
       const conAlzahombre = !!data.conAlzahombre
       const valorHora = conAlzahombre ? 65000 : 60000
+      const latitud = data.latitud != null ? parseFloat(data.latitud) : null
+      const longitud = data.longitud != null ? parseFloat(data.longitud) : null
 
       const result = await prisma.$transaction(async (tx) => {
         // 1. Get or create client
@@ -197,6 +202,7 @@ export async function POST(req: Request) {
             estadoReporte: data.factura ? 'POR FACTURAR' : 'SIN FACTURA',
             valorHora,
             monto: horasCobradas * valorHora,
+            ...(latitud != null && longitud != null ? { latitud, longitud } : {}),
           },
         })
 

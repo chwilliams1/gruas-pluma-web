@@ -90,5 +90,7 @@ model Reporte {
   factura         Boolean   @default(false)
   estadoReporte   String    @default("sin factura") // "facturado", "sin factura", "ESPERA OC"
   monto           Float     @default(0)
+  latitud         Float?
+  longitud        Float?
   creadoEn        DateTime  @default(now())
 }
