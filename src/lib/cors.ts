@@ -6,7 +6,7 @@ const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
 
 export function getCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('Origin') || ''
-  const isLocalDev = origin.startsWith('http://localhost:')
+  const isLocalDev = origin.startsWith('http://localhost:') || origin.startsWith('http://192.168.') || origin.startsWith('http://10.')
   const allowedOrigin = ALLOWED_ORIGINS.includes(origin) || isLocalDev ? origin : ALLOWED_ORIGINS[0]
 
   return {

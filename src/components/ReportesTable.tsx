@@ -42,7 +42,88 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
   }
 
   return (
-    <div className="bg-surface-1 rounded-xl border border-edge overflow-hidden">
+    <>
+    {/* Mobile cards */}
+    <div className="flex flex-col gap-3 md:hidden">
+      {reportes.map(r => (
+        <div key={r.id} className="bg-surface-1 rounded-xl p-4 border border-edge shadow-sm">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-6 h-6 rounded-full bg-info-subtle text-info flex items-center justify-center text-[9px] font-semibold shrink-0">
+                  {r.chofer.nombre.split(' ').map((n: string) => n[0]).join('')}
+                </div>
+                <span className="text-[13px] font-semibold text-ink truncate">{r.chofer.nombre}</span>
+              </div>
+              <div className="text-[11px] text-ink-tertiary">{r.numeroReporte || r.codigo} · {formatFecha(r.fecha)}</div>
+            </div>
+            <CycleEstadoBtn reporteId={r.id} estado={r.estadoReporte ?? 'SIN FACTURA'} />
+          </div>
+
+          <div className="text-[13px] font-medium text-ink mb-2 truncate">{r.solicitud.cliente.nombre}</div>
+
+          <div className="grid grid-cols-3 gap-2 text-center py-2 mb-3 bg-[rgba(0,0,0,0.02)] rounded-lg">
+            <div>
+              <div className="text-[10px] text-ink-muted">Horas</div>
+              <div className="text-[12px] font-bold text-ink">{r.horas}{(r.horasExtra ?? 0) > 0 ? <span className="text-ink-muted text-[10px]">+{r.horasExtra}</span> : ''}</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-ink-muted">Val/Hora</div>
+              <div className="text-[12px] font-bold text-ink">${((r.valorHora ?? 60000)/1000).toFixed(0)}k</div>
+            </div>
+            <div>
+              <div className="text-[10px] text-ink-muted">Monto</div>
+              <div className="text-[12px] font-bold text-ink">${(r.monto ?? 0).toLocaleString('es-CL')}</div>
+            </div>
+          </div>
+
+          <div className="text-[12px] text-ink-secondary leading-relaxed mb-3 line-clamp-2">{r.descripcion}</div>
+
+          <div className="flex items-center justify-between pt-3 border-t border-edge">
+            <TogglePagadoBtn reporteId={r.id} pagado={r.pagado} />
+            <div className="flex items-center gap-0.5">
+              <DownloadPDFBtn data={{
+                codigo: r.codigo,
+                numeroReporte: r.numeroReporte,
+                fecha: typeof r.fecha === 'string' ? r.fecha : r.fecha.toISOString(),
+                choferNombre: r.chofer.nombre,
+                clienteNombre: r.solicitud.cliente.nombre,
+                clienteRut: r.solicitud.cliente.rut,
+                clienteDireccion: r.solicitud.direccion || null,
+                clienteTelefono: null,
+                descripcion: r.descripcion,
+                horas: r.horas,
+                horasExtra: r.horasExtra ?? 0,
+                valorHora: r.valorHora ?? 60000,
+                monto: r.monto,
+                estadoReporte: r.estadoReporte ?? 'SIN FACTURA',
+                pagado: r.pagado,
+                latitud: r.latitud,
+                longitud: r.longitud,
+              }} />
+              <EditReporteBtn
+                reporte={{
+                  id: r.id, numeroReporte: r.numeroReporte, choferId: r.choferId,
+                  clienteId: r.solicitud.clienteId, fecha: typeof r.fecha === 'string' ? r.fecha : r.fecha.toISOString(), horas: r.horas,
+                  horasExtra: r.horasExtra ?? 0, valorHora: r.valorHora ?? 60000,
+                  monto: r.monto, descripcion: r.descripcion,
+                  estadoReporte: r.estadoReporte ?? 'SIN FACTURA', pagado: r.pagado,
+                }}
+                choferes={choferes}
+                clientes={clientes}
+              />
+              <DeleteReporteBtn reporteId={r.id} />
+            </div>
+          </div>
+        </div>
+      ))}
+      {reportes.length === 0 && (
+        <div className="text-[13px] text-ink-tertiary py-12 text-center bg-surface-1 rounded-xl border border-edge">No hay reportes</div>
+      )}
+    </div>
+
+    {/* Desktop table */}
+    <div className="hidden md:block bg-surface-1 rounded-xl border border-edge overflow-hidden">
       <table className="w-full text-left border-collapse table-fixed">
         <colgroup>
           <col className="w-[28px]" />
@@ -214,5 +295,6 @@ export function ReportesTable({ reportes, choferes, clientes }: Props) {
         <div className="text-[13px] text-ink-tertiary py-12 text-center">No hay reportes</div>
       )}
     </div>
+    </>
   )
 }
